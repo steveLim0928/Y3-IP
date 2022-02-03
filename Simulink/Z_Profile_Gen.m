@@ -2,15 +2,17 @@ close all
 
 % TO CHANGE
 
-T = 10; %Total duration
-t = 5; % Gripped duration
-d1 = 3; % getting to postion
-d2 = 2; % return to position
-N = 1000; % number of 'points'
-A = 2; % distanced covered
-filename = 'z_Profile';
+T = 2; % Total duration
+t = 1; % Gripped duration
+d1 = 0.5; % getting to postion
+d2 = 0.5; % return to position
+N = 200; % number of 'points'
+A = 0.0117; % distanced covered
+filename = 'grip_Profile';
 
 % END TO CHANGE
+
+
 
 % Calculate each section number of points
 N1 = int16(N/T*d1);
@@ -41,10 +43,10 @@ y3 = reshape(y3, [N3,1]);
 % join x and y axis 
 y = [y1; y2; y3];
 n = [reshape(n1, [N1,1]); reshape(n2, [N2,1]); reshape(n3, [N3,1])];
-z_profile = [n y];
+grip_profile = [n y];
 
 % Export
-save(filename,'z_profile');
+save(filename,'grip_profile');
 
 % Visualise plots
 scatter(n1,y1);
