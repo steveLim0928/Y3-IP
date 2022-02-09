@@ -2,20 +2,22 @@ close all;
 clear;
 clc;
 
-load x-axis_7th_order_model.mat;
-load y_axis_model.mat;
-load z_axis_model.mat;
-load trajectories_30upm_100Hz_no_offset.mat;
-load grip_Profile.mat;
+% load x-axis_7th_order_model.mat;
+% load y_axis_model.mat;
+% load z_axis_model.mat;
+% load trajectories_30upm_100Hz_no_offset.mat;
+load Profile_grip.mat;
+load Profile_y.mat;
+load Profile_z.mat;
 
 % tracking reference
-refx = x_profile_30upm(:,2);
-refy = y_profile_30upm(:,2);
-refz = z_profile_30upm(:,2);
+% refx = x_profile(:,2);
+refy = y_profile(:,2);
+refz = z_profile(:,2);
 refg1 = grip_profile(:,2);
 refg2 = grip_profile(:,2);
 
-T = 2;
+T = 4;
 Ts = 0.01;
 
 N = 10;
@@ -133,34 +135,34 @@ enorm_g2 = zeros(N,1);
 for i=1:N
     i
     if(0) %run uing lsim
-        %yx = lsim(TFx,u_x,t);
-        %yy = lsim(TFy,u_y,t);
-        %yz = lsim(TFz,u_z,t);
+%         yx = lsim(TFx,u_x,t);
+        yy = lsim(TFy,u_y,t);
+        yz = lsim(TFz,u_z,t);
         yg1 = lsim(TFg,u_g1,t);
         yg2 = lsim(TFg,u_g2,t);
     elseif(0)
-        %yx = G_x*u_x;
-        %yy = G_y*u_y;
-        %yz = G_z*u_z;
+%         yx = G_x*u_x;
+        yy = G_y*u_y;
+        yz = G_z*u_z;
         yg1 = G_g1*u_g1;
         yg2 = G_g2*u_g1;
         
     else
        % model = sim()
-        %inputx = timeseries(u_x,t);
-        %inputy = timeseries(u_y,t);
-        %inputz = timeseries(u_z,t);
+%         inputx = timeseries(u_x,t);
+        inputy = timeseries(u_y,t);
+        inputz = timeseries(u_z,t);
         inputg1 = timeseries(u_g1,t);
         inputg2 = timeseries(u_g2,t);
 
-        model = sim('Gantry_Model_V6.slx')
+        model = sim('Gantry_Model_V7.slx')
 
-        %yx = model.outputx.Data();
-        %yx(1) = [];
-        %yy = model.outputy.Data();
-        %yy(1) = [];
-        %yz = model.outputz.Data();
-        %yz(1) = [];
+%         yx = model.outputx.Data();
+%         yx(1) = [];
+        yy = model.outputy.Data();
+        yy(1) = [];
+        yz = model.outputz.Data();
+        yz(1) = [];
         yg1 = model.outputg1.Data();
         yg1(1) = [];
         yg2 = model.outputg2.Data();
@@ -168,22 +170,22 @@ for i=1:N
        
     end
 
-    %e_x = refx - yx;
-    %e_y = refy - yy;
-    %e_z = -refz - yz;
+%     e_x = refx - yx;
+    e_y = refy - yy;
+    e_z = -refz - yz;
     e_g1 = refg1 - yg1;
     e_g2 = refg2 - yg2;
 
-    %enorm_x(i) = norm(e_x);
-    %enorm_y(i) = norm(e_y);
-    %enorm_z(i) = norm(e_z);
+%     enorm_x(i) = norm(e_x);
+    enorm_y(i) = norm(e_y);
+    enorm_z(i) = norm(e_z);
     enorm_g1(i) = norm(e_g1);
     enorm_g2(i) = norm(e_g2);
     
-    %u_x  = u_x + inv(Rx+Qx*(G_x'*G_x))*Qx*G_x'*e_x;
-%     u_y  = u_y + inv(Ry+Qy*(G_y'*G_y))*Qy*G_y'*e_y;
+%     u_x  = u_x + inv(Rx+Qx*(G_x'*G_x))*Qx*G_x'*e_x;
+    u_y  = u_y + inv(Ry+Qy*(G_y'*G_y))*Qy*G_y'*e_y;
     %u_y  = u_y + inv(Ry+G_y'*Qy*G_y)*G_y'* Qy*e_y;
-    %u_z  = u_z + inv(Rz+Qz*(G_z'*G_z))*Qz*G_z'*e_z;
+    u_z  = u_z + inv(Rz+Qz*(G_z'*G_z))*Qz*G_z'*e_z;
     u_g1  = u_g1 + inv(Rg1+Qg1*(G_g1'*G_g1))*Qg1*G_g1'*e_g1;
     u_g2  = u_g2 + inv(Rg2+Qg2*(G_g2'*G_g2))*Qg2*G_g2'*e_g2;
 
@@ -200,11 +202,11 @@ end
 % final_enorm_x = norm(e_x)
 % enorm_x(1)
 % accuracy_x = enorm_x(25)/enorm_x(1)*100
-% final_enorm_y = norm(e_y)
-% enorm_y(1)
+final_enorm_y = norm(e_y)
+enorm_y(1)
 % accuracy_y = enorm_y(25)/enorm_y(1)*100
-% final_enorm_z = norm(e_z)
-% enorm_z(1)
+final_enorm_z = norm(e_z)
+enorm_z(1)
 % accuracy_z = enorm_z(25)/enorm_z(1)*100
 final_enorm_g1 = norm(e_g1)
 enorm_g1(1)
@@ -217,10 +219,10 @@ subplot(3,3,1)
 plot(1:N,enorm_g1); xlabel('Trial, k'); ylabel('Error Norm'); title('gripper 1');
 subplot(3,3,2)
 plot(1:N,enorm_g2); xlabel('Trial, k'); ylabel('Error Norm'); title('gripper 2');
-% subplot(3,3,3)
-% plot(1:N,enorm_z); xlabel('Trial, k'); ylabel('Error Norm'); title('z axis');
-% subplot(3,2,4)
-% plot(t,u_z); xlabel('Time (s)'); ylabel('u');
+subplot(3,3,3)
+plot(1:N,enorm_z); xlabel('Trial, k'); ylabel('Error Norm'); title('z axis');
+subplot(3,2,4)
+plot(1:N,enorm_y); xlabel('Time (s)'); ylabel('y axis');
 % subplot(3,2,2)
 % semilogy(1:N,enorm_x); xlabel('Trial, k'); ylabel('Error Norm');
 % subplot(3,2,3)

@@ -2,13 +2,13 @@ close all
 
 % TO CHANGE
 
-T = 2; % Total duration
-t = 1; % Gripped duration
-d1 = 0.5; % getting to postion
-d2 = 0.5; % return to position
-N = 200; % number of 'points'
-A = 0.011535; % distanced covered
-filename = 'grip_Profile';
+T = 4; % Total duration
+t = 2; % Gripped duration
+d1 = 1; % getting to postion
+d2 = 1; % return to position
+N = 400; % number of 'points'
+A = 0.0117; % distanced covered
+filename = 'Profile_grip';
 
 % END TO CHANGE
 
@@ -29,7 +29,7 @@ n2 = linspace(l1,l2,N2);
 n3 = linspace(l2,T,N3);
 
 % Phase 1, reshape to fit 1xn
-y1 = -A*cos(0.5/d1*pi*n1) + A;
+y1 = (-A*cos(1/d1*pi*n1) + A)/2;
 y1 = reshape(y1, [N1,1]);
 
 % Phase 2, only get 1st column
@@ -37,7 +37,7 @@ y2 = A*ones(N2);
 y2 = y2(:,1);
 
 % Phase 3, reshape to fit 1xn
-y3 = A*cos(0.5/d2*pi*(n3-l2));
+y3 = (A*cos(1/d2*pi*(n3-l2)) + A)/2;
 y3 = reshape(y3, [N3,1]);
 
 % join x and y axis 
@@ -53,3 +53,4 @@ scatter(n1,y1);
 hold on;
 scatter(n2,y2);
 scatter(n3,y3);
+scatter(n,y);
