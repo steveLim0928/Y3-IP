@@ -98,7 +98,7 @@ scatter(n3,y3);
 scatter(n4,y4);
 scatter(n5,y5);
 scatter(n6,y6);
-scatter(n,y);
+% scatter(n,y);
 
 scatter(grip_profile(:,1),grip_profile(:,2))
 

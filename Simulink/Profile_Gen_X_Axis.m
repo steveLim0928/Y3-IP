@@ -9,12 +9,12 @@ d1 = 0.8; % TO duration
 d2 = 0.8; % TRANSITION 1 duration
 d3 = 0.8; % TRANSITION 2 duration
 d4 = 0.8; % RETURN duration
-A1 = 0.3; % TO distance
-A2 = 0.1; % Release distance
+A1 = 0.5; % TO distance
+A2 = 0.3; % Release distance
 
 N = 400; % Number of 'POINTS'
 
-filename = 'Profile_y';
+filename = 'Profile_x';
 
 % END TO CHANGE
 
@@ -70,10 +70,10 @@ y6 = reshape(y6, [N6,1]);
 % join x and y axis 
 y = [y1; y2; y3; y4; y5; y6];
 n = [reshape(n1, [N1,1]); reshape(n2, [N2,1]); reshape(n3, [N3,1]); reshape(n4, [N4,1]); reshape(n5, [N5,1]); reshape(n6, [N6,1])];
-y_profile = [n y];
+x_profile = [n y];
 
 % Export
-save(filename,'y_profile');
+save(filename,'x_profile');
 
 % Visualise plots
 scatter(n1,y1);
@@ -86,5 +86,6 @@ scatter(n6,y6);
 
 scatter(grip_profile(:,1),grip_profile(:,2))
 scatter(z_profile(:,1),z_profile(:,2))
+scatter(y_profile(:,1),y_profile(:,2))
 
 

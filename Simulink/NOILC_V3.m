@@ -12,11 +12,11 @@ load Profile_y.mat;
 load Profile_z.mat;
 
 % tracking reference
-refx = x_profile(:,2);
-refy = y_profile(:,2);
-refz = z_profile(:,2);
-refg1 = grip_profile(:,2);
-refg2 = grip_profile(:,2);
+refx = x_profile_V2(:,2);
+refy = y_profile_V2(:,2);
+refz = z_profile_V2(:,2);
+refg1 = grip_profile_V2(:,2);
+refg2 = grip_profile_V2(:,2);
 
 T = 4;
 Ts = 0.01;
@@ -156,7 +156,7 @@ for i=1:N
         inputg1 = timeseries(u_g1,t);
         inputg2 = timeseries(u_g2,t);
 
-        model = sim('Gantry_Model_V8.slx')
+        model = sim('Gantry_Model_V9.slx')
 
         yx = model.outputx.Data();
         yx(1) = [];
