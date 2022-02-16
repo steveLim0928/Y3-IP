@@ -12,11 +12,11 @@ load Profile_y.mat;
 load Profile_z.mat;
 
 % tracking reference
-refx = x_profile(:,2);
-refy = y_profile(:,2);
-refz = z_profile(:,2);
-refg1 = grip_profile(:,2);
-refg2 = grip_profile(:,2);
+refx = x_profile_V2(:,2);
+refy = y_profile_V2(:,2);
+refz = z_profile_V2(:,2);
+refg1 = grip_profile_V2(:,2);
+refg2 = grip_profile_V2(:,2);
 
 T = 4;
 Ts = 0.01;
@@ -25,6 +25,35 @@ N = 10;
 
 t = 0:Ts:T;
 t(1) = []; % remove t = 0
+
+% object size
+obj_x = 0.025;
+obj_y = 0.025;
+
+% x axis trajectory values
+T_x = 4;
+D1_x = 0.4;
+D2_x = 0.4;
+d1_x = 0.8;
+d2_x = 0.8;
+d3_x = 0.8;
+d4_x = 0.8;
+A1_x = 0.5;
+A2_x = 0.3;
+
+% Y axis trajectory values
+T_y = 4;
+D1_y = 0.4;
+D2_y = 0.4;
+d1_y = 0.8;
+d2_y = 0.8;
+d3_y = 0.8;
+d4_y = 0.8;
+A1_y = 0.3;
+A2_y = 0.1;
+
+% Z axis clear of object
+z_clear = 0;
 
 % Mass for each axis independently
 mx = 0.64*0.05*0.05*2700;
@@ -135,26 +164,45 @@ enorm_g2 = zeros(N,1);
 
 for i=1:N
     i
+
+    % Find the position where de
+    [row_x1, col_x1] = find(t>=d1_x & t<=d1_x+D1_x);
+    [row_x2, col_x2] = find(t>=d1_x+D1_x+d2_x+d3_x & t<=d1_x+D1_x+d2_x+d3_x+D2_x);
+
+    [row_y1, col_y1] = find(t>=d1_y & t<=d1_y+D1_y);
+    [row_y2, col_y2] = find(t>=d1_y+D1_y+d2_y+d3_y & t<=d1_y+D1_y+d2_y+d3_y+D2_y);
+
     if(0) %run uing lsim
         yx = lsim(TFx,u_x,t);
         yy = lsim(TFy,u_y,t);
-        yz = lsim(TFz,u_z,t);
-        yg1 = lsim(TFg,u_g1,t);
-        yg2 = lsim(TFg,u_g2,t);
+        if (z_clear)
+            yz = lsim(TFz,u_z,t);
+            yg1 = lsim(TFg,u_g1,t);
+            yg2 = lsim(TFg,u_g2,t);
+        end
     elseif(0)
         yx = G_x*u_x;
         yy = G_y*u_y;
-        yz = G_z*u_z;
-        yg1 = G_g1*u_g1;
-        yg2 = G_g2*u_g1;
+        if (z_clear)
+            yz = G_z*u_z;
+            yg1 = G_g1*u_g1;
+            yg2 = G_g2*u_g1;
+        end
         
     else
        % model = sim()
         inputx = timeseries(u_x,t);
         inputy = timeseries(u_y,t);
-        inputz = timeseries(u_z,t);
-        inputg1 = timeseries(u_g1,t);
-        inputg2 = timeseries(u_g2,t);
+        if (z_clear)
+            inputz = timeseries(u_z,t);
+            inputg1 = timeseries(u_g1,t);
+            inputg2 = timeseries(u_g2,t);
+        else 
+            inputz = timeseries(0,t);
+            inputg1 = timeseries(0,t);
+            inputg2 = timeseries(0,t);
+        end
+        
 
         model = sim('Gantry_Model_V9.slx')
 
@@ -173,22 +221,35 @@ for i=1:N
 
     e_x = refx - yx;
     e_y = refy - yy;
-    e_z = -refz - yz;
-    e_g1 = refg1 - yg1;
-    e_g2 = refg2 - yg2;
+    if (z_clear)
+        e_z = -refz - yz;
+        e_g1 = refg1 - yg1;
+        e_g2 = refg2 - yg2;
+    end
 
     enorm_x(i) = norm(e_x);
     enorm_y(i) = norm(e_y);
-    enorm_z(i) = norm(e_z);
-    enorm_g1(i) = norm(e_g1);
-    enorm_g2(i) = norm(e_g2);
+    if (z_clear)
+        enorm_z(i) = norm(e_z);
+        enorm_g1(i) = norm(e_g1);
+        enorm_g2(i) = norm(e_g2);
+    end
     
     u_x  = u_x + inv(Rx+Qx*(G_x'*G_x))*Qx*G_x'*e_x;
     u_y  = u_y + inv(Ry+Qy*(G_y'*G_y))*Qy*G_y'*e_y;
     %u_y  = u_y + inv(Ry+G_y'*Qy*G_y)*G_y'* Qy*e_y;
-    u_z  = u_z + inv(Rz+Qz*(G_z'*G_z))*Qz*G_z'*e_z;
-    u_g1  = u_g1 + inv(Rg1+Qg1*(G_g1'*G_g1))*Qg1*G_g1'*e_g1;
-    u_g2  = u_g2 + inv(Rg2+Qg2*(G_g2'*G_g2))*Qg2*G_g2'*e_g2;
+    if (z_clear)
+        u_z  = u_z + inv(Rz+Qz*(G_z'*G_z))*Qz*G_z'*e_z;
+        u_g1  = u_g1 + inv(Rg1+Qg1*(G_g1'*G_g1))*Qg1*G_g1'*e_g1;
+        u_g2  = u_g2 + inv(Rg2+Qg2*(G_g2'*G_g2))*Qg2*G_g2'*e_g2;
+    end
+
+    % Decide if z should move
+    if (mean(yx(col_x1))>=A1_x-obj_x && mean(yx(col_x2))>=A2_x-obj_x)
+        if (mean(yx(col_y1))>=A1_y-obj_y && mean(yx(col_y2))>=A2_y-obj_y)
+            z_clear = 1;
+        end
+    end
 
    % u = u + noise;
     
