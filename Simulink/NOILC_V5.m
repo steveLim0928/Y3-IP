@@ -45,6 +45,11 @@ t(1) = []; % remove t = 0
 obj_x = 0.025;
 obj_y = 0.025;
 obj_z = 0.03;
+obj_density = 100000;
+obj_contactpt = 8;
+obj_coeff = 0.5;
+
+Fmin = obj_x*obj_y*obj_z*obj_density*9.81/obj_coeff/obj_contactpt
 
 % Enviroment
 conveyer1 = 0.01;
@@ -170,6 +175,8 @@ y_pos_plt = [];
 z_pos_plt = [];
 gripL_pos_plt = [];
 gripR_pos_plt = [];
+gripL_FNormal_plt = [];
+gripR_FNormal_plt = [];
 
 for i=1:N
     i
@@ -266,6 +273,13 @@ for i=1:N
 
     e_x = refx - yx;
     e_y = refy - yy;
+
+    [row_g, col_g] = find(t>=time_g1(1)+time_g1(2) & t<=time_g1(1)+time_g1(2)+time_g1(3));
+    if (mean(LNormalF(col_g)) >= Fmin * 1.05 && mean(RNormalF(col_g)) >= Fmin * 1.05)
+        firm_grip = 1;
+    else
+        firm_grip = 0;
+    end
     
 
     if (firm_grip)
@@ -336,6 +350,8 @@ for i=1:N
     z_pos_plt = [z_pos_plt yz];
     gripL_pos_plt = [gripL_pos_plt ygL];
     gripR_pos_plt = [gripR_pos_plt ygR];
+    gripL_FNormal_plt = [gripL_FNormal_plt LNormalF];
+    gripR_FNormal_plt = [gripR_FNormal_plt RNormalF];
     
 
 end
