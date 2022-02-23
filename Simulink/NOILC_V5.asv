@@ -4,15 +4,15 @@ clc;
 
 points = 400;
 T = 5;
-Ts = 0.0125;
+Ts = 0.01;
 time_x = [0.8 1.4 0.8 1.2 0.8];
 A_x = [0.5 0.3];
 time_y = [0.8 1.4 0.8 1.2 0.8];
 A_y = [0.3 0.1];
 time_z1 = [0.8 0.3 0.6 0.3 0.2 0.8 0.3 0.6 0.3 0.8];
-A_z1 = [0.038 0.028];
+A_z1 = [0.38 0.28];
 time_z2 = [0.8 0.3 0.6 0.3 0.2 0.8 0.3 0.6 0.3 0.8];
-A_z2 = [0.038 0.028];
+A_z2 = [0.38 0.28];
 time_g1 = [0.8 0.4 0.2 0.3 2.1 0.4 0.8];
 A_g1 = [0.0115+0.003 0.0115-0.0002];
 time_g2 = [0.8 0.4 2.6 0.4 0.8];
@@ -20,21 +20,13 @@ A_g2 =[0.0115+0.003];
 
 % tracking reference
 refx = X_axis_V3(time_x, T, points, A_x);
-refx = refx(:,2);
 refy = Y_axis_V3(time_y, T, points, A_y);
-refy = refy(:,2);
 refz1 = Z1_axis_V3(time_z1, T, points, A_z1);
-refz1 = refz1(:,2);
 refz2 = Z2_axis_V3(time_z2, T, points, A_z2);
-refz2 = refz2(:,2);
 refLg1 = G1_axis_V3(time_g1, T, points, A_g1);
-refLg1 = refLg1(:,2);
 refLg2 = G2_axis_V3(time_g2, T, points, A_g2);
-refLg2 = refLg2(:,2);
 refRg1 = G1_axis_V3(time_g1, T, points, A_g1);
-refRg1 = refRg1(:,2);
 refRg2 = G2_axis_V3(time_g2, T, points, A_g2);
-refRg2 = refRg2(:,2);
 
 N = 10;
 
@@ -56,8 +48,6 @@ z_clear = 0;
 % gripper clear to grab
 gripL_clear = 0;
 gripR_clear = 0;
-
-firm_grip = 0;
 
 % Mass for each axis independently
 mx = 0.64*0.05*0.05*2700;
@@ -88,8 +78,8 @@ kdg = 163.3421;
  sysdx = ss(c2d(TFx,Ts));
  sysdy = ss(c2d(TFy,Ts));
  sysdz = ss(c2d(TFz,Ts));
- sysdgL = ss(c2d(TFg,Ts));
- sysdgR = ss(c2d(TFg,Ts));
+ sysdg1 = ss(c2d(TFg,Ts));
+ sysdg2 = ss(c2d(TFg,Ts));
 
 % discretise system
 % sysdx = ss(c2d(sysc,Ts));
@@ -113,15 +103,15 @@ g_z(1) = []; % remove the diagonal 0
 g_z = g_z*Ts;
 G_z = toeplitz(g_z,g_z*0); % transfer to matrix with diagonal = CB
 
-g_gL = impulse(sysdgL,T);
-g_gL(1) = []; % remove the diagonal 0
-g_gL = g_gL*Ts;
-G_gL = toeplitz(g_gL,g_gL*0); % transfer to matrix with diagonal = CB
+g_g1 = impulse(sysdg1,T);
+g_g1(1) = []; % remove the diagonal 0
+g_g1 = g_g1*Ts;
+G_g1 = toeplitz(g_g1,g_g1*0); % transfer to matrix with diagonal = CB
 
-g_gR = impulse(sysdgR,T);
-g_gR(1) = []; % remove the diagonal 0
-g_gR = g_gR*Ts;
-G_gR = toeplitz(g_gR,g_gR*0); % transfer to matrix with diagonal = CB
+g_g2 = impulse(sysdg2,T);
+g_g2(1) = []; % remove the diagonal 0
+g_g2 = g_g2*Ts;
+G_g2 = toeplitz(g_g2,g_g2*0); % transfer to matrix with diagonal = CB
 
 % ILC weights 
 Rx = eye(size(G_x))*0.1; 
@@ -133,11 +123,11 @@ Qy = eye(size(G_y))*400;
 Rz = eye(size(G_z))*0.0001; 
 Qz = eye(size(G_z))*1500;
 
-RgL = eye(size(G_gL))*0.0001; 
-QgL = eye(size(G_gL))*1500;
+Rg1 = eye(size(G_g1))*0.0001; 
+Qg1 = eye(size(G_g1))*1500;
 
-RgR = eye(size(G_gR))*0.0001; 
-QgR = eye(size(G_gR))*1500;
+Rg2 = eye(size(G_g2))*0.0001; 
+Qg2 = eye(size(G_g2))*1500;
 
 
 % create vectors to store results 
@@ -156,11 +146,11 @@ u_z = 0*t'; % start from zero. Could start from ref, but results worse
 %enorm0_z = norm(e_z) %initial error
 enorm_z = zeros(N,1); %create N-by-1 matrix of all 0
 
-u_gL = 0*t';
-enorm_gL = zeros(N,1);
+u_g1 = 0*t';
+enorm_g1 = zeros(N,1);
 
-u_gR = 0*t';
-enorm_gR = zeros(N,1);
+u_g2 = 0*t';
+enorm_g2 = zeros(N,1);
 
 %noise = 0.0001*sin(2*pi*0.5*t);
 %noise = 0.0001;
@@ -168,8 +158,8 @@ enorm_gR = zeros(N,1);
 x_pos_plt = [];
 y_pos_plt = [];
 z_pos_plt = [];
-gripL_pos_plt = [];
-gripR_pos_plt = [];
+grip1_pos_plt = [];
+grip2_pos_plt = [];
 
 for i=1:N
     i
@@ -182,21 +172,21 @@ for i=1:N
     [row_y2, col_y2] = find(t>=time_y(1)+time_y(2)+time_y(3) & t<=time_y(1)+time_y(2)+time_y(3)+time_y(4));
 
     % Find when z axis lowered to object
-    [row_gL1, col_gL1] = find(t>=time_z2(1)+time_z2(2) & t<=time_z2(1)+time_z2(2)+time_z2(3));
-    [row_gL2, col_gL2] = find(t>=time_z2(1)+time_z2(2)+time_z2(3)+time_z2(4)+time_z2(5)+time_z2(6)+time_z2(7) & t<=time_z2(1)+time_z2(2)+time_z2(3)+time_z2(4)+time_z2(5)+time_z2(6)+time_z2(7)+time_z2(8));
-    [row_gR1, col_gR1] = find(t>=time_z2(1)+time_z2(2) & t<=time_z2(1)+time_z2(2)+time_z2(3));
-    [row_gR2, col_gR2] = find(t>=time_z2(1)+time_z2(2)+time_z2(3)+time_z2(4)+time_z2(5)+time_z2(6)+time_z2(7) & t<=time_z2(1)+time_z2(2)+time_z2(3)+time_z2(4)+time_z2(5)+time_z2(6)+time_z2(7)+time_z2(8));
+    [row_gL1, col_gL1] = find(t>=time_z(1)+time_z(2) & t<=time_y(1)+time_y(2)+time_z(3));
+    [row_g12, col_gL2] = find(t>=0.8+d1_z+D1_z+d2_z+d5_z+d3_z+1.5 & t<=0.8+d1_z+D1_z+d2_z+d5_z+d3_z+1.5+D2_z);
+    [row_g21, col_g21] = find(t>=0.8+d1_z & t<=0.8+d1_z+D1_z);
+    [row_g22, col_g22] = find(t>=0.8+d1_z+D1_z+d2_z+d5_z+d3_z+1.5 & t<=0.8+d1_z+D1_z+d2_z+d5_z+d3_z+1.5+D2_z);
 
     if(0) %run uing lsim
         yx = lsim(TFx,u_x,t);
         yy = lsim(TFy,u_y,t);
         if (z_clear)
             yz = lsim(TFz,u_z,t);
-            if (gripL_clear)
-                ygL = lsim(TFg,u_gL,t);
+            if (grip1_clear)
+                yg1 = lsim(TFg,u_g1,t);
             end
-            if (gripR_clear)
-                ygR = lsim(TFg,u_gR,t);
+            if (grip2_clear)
+                yg2 = lsim(TFg,u_g2,t);
             end
         end
     elseif(0)
@@ -204,20 +194,20 @@ for i=1:N
         yy = G_y*u_y;
         if (z_clear)
             yz = G_z*u_z;
-            if (gripL_clear)
-                ygL = G_gL*u_gL;
+            if (grip1_clear)
+                yg1 = G_g1*u_g1;
             else 
-                ygL = G_gL*0;
+                yg1 = G_g1*0;
             end
-            if (gripR_clear)
-                ygR = G_gR*u_gR;
+            if (grip2_clear)
+                yg2 = G_g2*u_g1;
             else 
-                ygR = G_gR*0;
+                yg2 = G_g2*0;
             end
         else
             yz = G_z*0;
-            ygL = G_gL*0;
-            ygR = G_gR*0;
+            yg1 = G_g1*0;
+            yg2 = G_g2*0;
         end
         
     else
@@ -238,12 +228,12 @@ for i=1:N
 %             end
 %         else 
         inputz = timeseries(u_z,t);
-        inputgL = timeseries(u_gL,t);
-        inputgR = timeseries(u_gR,t);
+        inputg1 = timeseries(u_g1,t);
+        inputg2 = timeseries(u_g2,t);
 %         end
         
 
-        model = sim('Gantry_Model_V10.slx')
+        model = sim('Gantry_Model_V9.slx')
 
         yx = model.outputx.Data();
         yx(1) = [];
@@ -251,53 +241,51 @@ for i=1:N
         yy(1) = [];
         yz = model.outputz.Data();
         yz(1) = [];
-        ygL = model.outputgL.Data();
-        ygL(1) = [];
-        ygR = model.outputgR.Data();
-        ygR(1) = [];
+        yg1 = model.outputg1.Data();
+        yg1(1) = [];
+        yg2 = model.outputg2.Data();
+        yg2(1) = [];
 
-        LNormalF = model.LNormalForce.Data();
-        LNormalF(1) = [];
-        RNormalF = model.RNormalForce.Data();
-        RNormalF(1) = [];
+        gripperforce = model.Gripper_Force.Data();
+        gripperforce(1) = [];
 
+        xinputforce = model.x_input_force.Data();
+        xinputforce(1) = [];
+        yinputforce = model.y_input_force.Data();
+        yinputforce(1) = [];
+        xsenseforce = model.x_sense_force.Data();
+        xsenseforce(1) = [];
+        ysenseforce = model.y_sense_force.Data();
+        ysenseforce(1) = [];
        
     end
 
     e_x = refx - yx;
     e_y = refy - yy;
-    
-
-    if (firm_grip)
-        e_z = -refz2 - yz;
-        e_gL = refLg2 - ygL;
-        e_gR = refRg2 - ygR;
-    else 
-        e_z = -refz1 - yz;
-        e_gL = refLg1 - ygL;
-        e_gR = refRg1 - ygR;
-    end
+    e_z = -refz - yz;
+    e_g1 = refg1 - yg1;
+    e_g2 = refg2 - yg2;
 
     enorm_x(i) = norm(e_x);
     enorm_y(i) = norm(e_y);
     enorm_z(i) = norm(e_z);
-    enorm_gL(i) = norm(e_gL);
-    enorm_gR(i) = norm(e_gR);
+    enorm_g1(i) = norm(e_g1);
+    enorm_g2(i) = norm(e_g2);
 
 
     % Decide if z should move
-    if (mean(yx(col_x1))>=A_x(1)-obj_x && mean(yx(col_x2))>=A_x(2)-obj_x)
-        if (mean(yx(col_y1))>=A_y(2)-obj_y && mean(yx(col_y2))>=A_y(2)-obj_y)
+    if (mean(yx(col_x1))>=A1_x-obj_x && mean(yx(col_x2))>=A2_x-obj_x)
+        if (mean(yx(col_y1))>=A1_y-obj_y && mean(yx(col_y2))>=A2_y-obj_y)
             z_clear = 1;
         end
     end
 
     % Decide if gripper should grip
-    if (abs(mean(yz(col_gL1)))>=0.055 - conveyer1 - obj_z + 0.005 && abs(mean(yz(col_gL2)))>=0.055 - conveyer2 - obj_z + 0.005)
-        gripL_clear = 1;
+    if (abs(mean(yz(col_g11)))>=0.055 - conveyer1 - obj_z + 0.005 && abs(mean(yz(col_g12)))>=0.055 - conveyer2 - obj_z + 0.005)
+        grip1_clear = 1;
     end
-    if (abs(mean(yz(col_gR1)))>=0.055 - conveyer1 - obj_z + 0.005 && abs(mean(yz(col_gR2)))>=0.055 - conveyer2 - obj_z + 0.005)
-        gripR_clear = 1;
+    if (abs(mean(yz(col_g21)))>=0.055 - conveyer1 - obj_z + 0.005 && abs(mean(yz(col_g22)))>=0.055 - conveyer2 - obj_z + 0.005)
+        grip2_clear = 1;
     end
 
     
@@ -307,19 +295,19 @@ for i=1:N
     if (z_clear)
         u_z  = u_z + inv(Rz+Qz*(G_z'*G_z))*Qz*G_z'*e_z;
         if (1)
-            u_gL  = u_gL + inv(RgL+QgL*(G_gL'*G_gL))*QgL*G_gL'*e_gL;
+            u_g1  = u_g1 + inv(Rg1+Qg1*(G_g1'*G_g1))*Qg1*G_g1'*e_g1;
         else
-            u_gL = u_gL + 0*t';
+            u_g1 = u_g2 + 0*t';
         end
         if (1)
-            u_gR  = u_gR + inv(RgR+QgR*(G_gR'*G_gR))*QgR*G_gR'*e_gR;
+            u_g2  = u_g2 + inv(Rg2+Qg2*(G_g2'*G_g2))*Qg2*G_g2'*e_g2;
         else 
-            u_gR = u_gR + 0*t';
+            u_g2 = u_g2 + 0*t';
         end
     else
         u_z = 0*t';
-        u_gL = 0*t';
-        u_gR = 0*t';
+        u_g1 = 0*t';
+        u_g2 = 0*t';
     end
 
 
@@ -334,8 +322,8 @@ for i=1:N
     x_pos_plt = [x_pos_plt yx];
     y_pos_plt = [y_pos_plt yy];
     z_pos_plt = [z_pos_plt yz];
-    gripL_pos_plt = [gripL_pos_plt ygL];
-    gripR_pos_plt = [gripR_pos_plt ygR];
+    grip1_pos_plt = [grip1_pos_plt yg1];
+    grip2_pos_plt = [grip2_pos_plt yg2];
     
 
 end
@@ -349,17 +337,17 @@ enorm_y(1)
 final_enorm_z = norm(e_z)
 enorm_z(1)
 % accuracy_z = enorm_z(25)/enorm_z(1)*100
-final_enorm_gL = norm(e_gL)
-enorm_gL(1)
+final_enorm_g1 = norm(e_g1)
+enorm_g1(1)
 %accuracy_g1 = enorm_g1(25)/enorm_g1(1)*100
-final_enorm_gR = norm(e_gR)
-enorm_gR(1)
+final_enorm_g2 = norm(e_g2)
+enorm_g2(1)
 %accuracy_g2 = enorm_g2(25)/enorm_g2(1)*100
 
 subplot(3,3,1)
-plot(1:N,enorm_gL); xlabel('Trial, k'); ylabel('Error Norm'); title('gripper 1');
+plot(1:N,enorm_g1); xlabel('Trial, k'); ylabel('Error Norm'); title('gripper 1');
 subplot(3,3,2)
-plot(1:N,enorm_gR); xlabel('Trial, k'); ylabel('Error Norm'); title('gripper 2');
+plot(1:N,enorm_g2); xlabel('Trial, k'); ylabel('Error Norm'); title('gripper 2');
 subplot(3,3,6)
 plot(1:N,enorm_z); xlabel('Trial, k'); ylabel('Error Norm'); title('z axis');
 subplot(3,3,5)

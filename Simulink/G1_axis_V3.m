@@ -58,13 +58,13 @@ n = [reshape(n1, [N1,1]); reshape(n2, [N2,1]); reshape(n3, [N3,1]); reshape(n4, 
 g1_profile = [n y];
 
 % Visualise plots
-scatter(n1,y1);
-hold on;
-scatter(n2,y2);
-scatter(n3,y3);
-scatter(n4,y4);
-scatter(n5,y5);
-scatter(n6,y6);
-scatter(n7,y7);
+% scatter(n1,y1);
+% hold on;
+% scatter(n2,y2);
+% scatter(n3,y3);
+% scatter(n4,y4);
+% scatter(n5,y5);
+% scatter(n6,y6);
+% scatter(n7,y7);
 
 end
