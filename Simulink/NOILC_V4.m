@@ -21,7 +21,7 @@ refg2 = grip_profile_V2(:,2);
 T = 4;
 Ts = 0.01;
 
-N = 6;
+N = 10;
 
 t = 0:Ts:T;
 t(1) = []; % remove t = 0
@@ -276,6 +276,15 @@ for i=1:N
 
         gripperforce = model.Gripper_Force.Data();
         gripperforce(1) = [];
+
+        xinputforce = model.x_input_force.Data();
+        xinputforce(1) = [];
+        yinputforce = model.y_input_force.Data();
+        yinputforce(1) = [];
+        xsenseforce = model.x_sense_force.Data();
+        xsenseforce(1) = [];
+        ysenseforce = model.y_sense_force.Data();
+        ysenseforce(1) = [];
        
     end
 

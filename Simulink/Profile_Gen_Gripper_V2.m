@@ -7,7 +7,7 @@ t = 2; % Gripped duration
 d1 = 0.2; % getting to postion
 d2 = 0.2; % return to position
 N = 400; % number of 'points'
-A = 0.0117; % distanced covered
+A = 0.0115+0.001; % distanced covered
 filename = 'Profile_grip';
 
 % END TO CHANGE

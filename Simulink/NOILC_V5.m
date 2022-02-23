@@ -276,6 +276,15 @@ for i=1:N
 
         gripperforce = model.Gripper_Force.Data();
         gripperforce(1) = [];
+
+        xinputforce = model.x_input_force.Data();
+        xinputforce(1) = [];
+        yinputforce = model.y_input_force.Data();
+        yinputforce(1) = [];
+        xsenseforce = model.x_sense_force.Data();
+        xsenseforce(1) = [];
+        ysenseforce = model.y_sense_force.Data();
+        ysenseforce(1) = [];
        
     end
 
@@ -313,12 +322,12 @@ for i=1:N
     %u_y  = u_y + inv(Ry+G_y'*Qy*G_y)*G_y'* Qy*e_y;
     if (z_clear)
         u_z  = u_z + inv(Rz+Qz*(G_z'*G_z))*Qz*G_z'*e_z;
-        if (grip1_clear)
+        if (1)
             u_g1  = u_g1 + inv(Rg1+Qg1*(G_g1'*G_g1))*Qg1*G_g1'*e_g1;
         else
             u_g1 = u_g2 + 0*t';
         end
-        if (grip2_clear)
+        if (1)
             u_g2  = u_g2 + inv(Rg2+Qg2*(G_g2'*G_g2))*Qg2*G_g2'*e_g2;
         else 
             u_g2 = u_g2 + 0*t';
