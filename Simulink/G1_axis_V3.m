@@ -1,6 +1,7 @@
-function g1_profile = G1_axis_V3 (time, T, N, A)
+function g1_profile = G1_axis_V3 (time, T, N, A,Ts)
 
-N1 = int16(N/T*time(1));
+N = N+1;
+N1 = int16(N/T*time(1))+1;
 N2 = int16(N/T*time(2));
 N3 = int16(N/T*time(3));
 N4 = int16(N/T*time(4));
@@ -16,12 +17,12 @@ l5 = l4+time(5);
 l6 = l5+time(6);
 
 n1 = linspace(0,l1,N1);
-n2 = linspace(l1,l2,N2);
-n3 = linspace(l2,l3,N3);
-n4 = linspace(l3,l4,N4);
-n5 = linspace(l4,l5,N5);
-n6 = linspace(l5,l6,N6);
-n7 = linspace(l6,T,N7);
+n2 = linspace(l1+Ts,l2,N2);
+n3 = linspace(l2+Ts,l3,N3);
+n4 = linspace(l3+Ts,l4,N4);
+n5 = linspace(l4+Ts,l5,N5);
+n6 = linspace(l5+Ts,l6,N6);
+n7 = linspace(l6+Ts,T,N7);
 
 C = A(1)-A(2);
 E = A(1)+A(2);
@@ -55,6 +56,8 @@ y7 = y7(:,1);
 % join x and y axis 
 y = [y1; y2; y3; y4; y5; y6; y7];
 n = [reshape(n1, [N1,1]); reshape(n2, [N2,1]); reshape(n3, [N3,1]); reshape(n4, [N4,1]); reshape(n5, [N5,1]); reshape(n6, [N6,1]); reshape(n7, [N7,1])];
+y(1) = [];
+n(1) = [];
 g1_profile = [n y];
 
 % Visualise plots

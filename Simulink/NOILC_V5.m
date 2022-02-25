@@ -10,33 +10,33 @@ A_x = [0.5 0.3];
 time_y = [0.8 1.4 0.8 1.2 0.8];
 A_y = [0.3 0.1];
 time_z1 = [0.8 0.3 0.6 0.3 0.2 0.8 0.3 0.6 0.3 0.8];
-A_z1 = [0.038 0.028];
+A_z1 = [0.037 0.027];   
 time_z2 = [0.8 0.3 0.6 0.3 0.2 0.8 0.3 0.6 0.3 0.8];
-A_z2 = [0.038 0.028];
+A_z2 = [0.037 0.027];
 time_g1 = [0.8 0.4 0.2 0.3 2.1 0.4 0.8];
 A_g1 = [0.0115+0.003 0.0115-0.0002];
 time_g2 = [0.8 0.4 2.6 0.4 0.8];
-A_g2 =[0.0115+0.003];
+A_g2 =[0.0115+0.003 0.0115+0.003];
 
 % tracking reference
-refx = X_axis_V3(time_x, T, points, A_x);
+refx = X_axis_V3(time_x, T, points, A_x, Ts);
 refx = refx(:,2);
-refy = Y_axis_V3(time_y, T, points, A_y);
+refy = Y_axis_V3(time_y, T, points, A_y, Ts);
 refy = refy(:,2);
-refz1 = Z1_axis_V3(time_z1, T, points, A_z1);
+refz1 = Z1_axis_V3(time_z1, T, points, A_z1, Ts);
 refz1 = refz1(:,2);
-refz2 = Z2_axis_V3(time_z2, T, points, A_z2);
+refz2 = Z2_axis_V3(time_z2, T, points, A_z2, Ts);
 refz2 = refz2(:,2);
-refLg1 = G1_axis_V3(time_g1, T, points, A_g1);
+refLg1 = G1_axis_V3(time_g1, T, points, A_g1, Ts);
 refLg1 = refLg1(:,2);
-refLg2 = G2_axis_V3(time_g2, T, points, A_g2);
+refLg2 = G2_axis_V3(time_g2, T, points, A_g2, Ts);
 refLg2 = refLg2(:,2);
-refRg1 = G1_axis_V3(time_g1, T, points, A_g1);
+refRg1 = G1_axis_V3(time_g1, T, points, A_g1, Ts);
 refRg1 = refRg1(:,2);
-refRg2 = G2_axis_V3(time_g2, T, points, A_g2);
+refRg2 = G2_axis_V3(time_g2, T, points, A_g2, Ts);
 refRg2 = refRg2(:,2);
 
-N = 10;
+N = 25;
 
 t = 0:Ts:T;
 t(1) = []; % remove t = 0
@@ -50,10 +50,12 @@ obj_contactpt = 8;
 obj_coeff = 0.5;
 
 Fmin = obj_x*obj_y*obj_z*obj_density*9.81/obj_coeff/obj_contactpt
+mo = obj_x*obj_y*obj_z*obj_density;
 
 % Enviroment
 conveyer1 = 0.01;
 conveyer2 = 0.02;
+stiffness = 1e4;
 
 % Z axis clear of object
 z_clear = 0;
@@ -63,6 +65,9 @@ gripL_clear = 0;
 gripR_clear = 0;
 
 firm_grip = 0;
+
+force_adaptL = 1;
+force_adaptR = 1;
 
 % Mass for each axis independently
 mx = 0.64*0.05*0.05*2700;
@@ -83,10 +88,10 @@ kdg = 163.3421;
 %% 
 
 % Define model tf
- TFx = tf([kdx kpx], [(mx+my+mz)*12.345679 kdx*12.345679 kpx*12.345679]);
- TFy = tf([kdy kpy], [(my+mz)*487.8 kdy*487.8 kpy*487.8]);
- TFz = tf([kdz kpz], [mz*1680.672269 kdz*1680.672269 kpz*1680.672269]);
- TFg = tf([kdg kpg], [mg*1680.672269 kdg*1680.672269 kpg*1680.672269]);
+ TFx = tf([kdx kpx], [(mx+my+mz+2*mg+mo)*12.345679 kdx*12.345679 kpx*12.345679]);
+ TFy = tf([kdy kpy], [(my+mz+2*mg+mo)*487.8 kdy*487.8 kpy*487.8]);
+ TFz = tf([kdz kpz], [(mz+2*mg+mo)*1680.672269 kdz*1680.672269 kpz*1680.672269]);
+ TFg = tf([kdg kpg], [(mg+mo)*1680.672269 kdg*1680.672269 kpg*1680.672269]);
 %% 
 
 % discretise system
@@ -177,9 +182,20 @@ gripL_pos_plt = [];
 gripR_pos_plt = [];
 gripL_FNormal_plt = [];
 gripR_FNormal_plt = [];
+gripR_FNormal_smooth_plt = [];
+tracjecotryGL = [];
+
+enorm_FgL = zeros(N,1);
+enorm_FgR = zeros(N,1);
+adapt = 0;
+prev_firm_grip = 0;
 
 for i=1:N
     i
+    firm_grip
+    force_adaptL
+    force_adaptR
+    
 
     % Find the position where deadtime is at
     [row_x1, col_x1] = find(t>=time_x(1) & t<=time_x(1)+time_x(2));
@@ -270,20 +286,125 @@ for i=1:N
 
        
     end
+    [row_gf, col_gf] = find(t>=time_g2(1)+time_g2(2) & t<=time_g2(1)+time_g2(2)+time_g2(3));
+    RForceMeasured = RNormalF(col_gf(1:end));
 
-    e_x = refx - yx;
-    e_y = refy - yy;
+    %%% Adapt gripping force
+    if (firm_grip)
+        % update grip trajectory
+        [row_gf, col_gf] = find(t>=time_g2(1)+time_g2(2) & t<=time_g2(1)+time_g2(2)+time_g2(3));
 
+        %%% LEFT SIDE
+
+        % Get the force when it is gripped
+        LForceMeasured = LNormalF(col_gf(1:end));
+        % Find the diff between actual grip force and ideal with margin
+        LFdiff = Fmin*1.1 - LForceMeasured;
+        if (abs((enorm_FgL(i-1)-norm(LFdiff))/enorm_FgL(i-1)*100) <= 5)
+            force_adaptL = 1;
+        elseif (firm_grip ~= prev_firm_grip)
+            force_adaptL = 1;
+        else
+            force_adaptL = 0;
+        end
+        if (force_adaptL)
+
+            % Do not reduce force before grip is applied
+            Fzeros1 = zeros(int16(points/T*(time_g2(1)+time_g2(2)))-1);
+            Fzeros1 = Fzeros1(:,1);
+            Fzeros2 = zeros(int16(points/T*(time_g2(4)+time_g2(5))));
+            Fzeros2 = Fzeros2(:,1);
+            % Net change of force to whole trajectory
+            FLChange = [Fzeros1; LFdiff; Fzeros2];
+            % Net distance change to whole trajectory
+            distLChange = FLChange/stiffness;
+            % New trajectory path
+            refLg2 = refLg2 + distLChange;
+        
+            % PROBLEM: The moving to grip position and return sine does not reflect
+            % the new changes
+            % Regenerate the gripping profile to change the sine waves
+            temp = G2_axis_V3(time_g2, T, points, [refLg2(col_gf(2)) refLg2(col_gf(end))], Ts);
+            temp = temp(:,2);
+            % Integrate the change in gripping force
+            refLg2 = [temp(1:col_gf-1);refLg2(col_gf(1:end));temp(col_gf(end)+1:end)];
+            adapt = adapt +1
+
+        end
+
+        %%% Right SIDE
+
+        % Get the force when it is gripped
+        RForceMeasured = RNormalF(col_gf(1:end));
+        % Find the diff between actual grip force and ideal with margin
+        RFdiff = Fmin*1.1 - RForceMeasured;
+        if (abs((enorm_FgR(i-1)-norm(RFdiff))/enorm_FgR(i-1)*100) <= 5)
+            force_adaptR = 1;
+        elseif (firm_grip ~= prev_firm_grip)
+            force_adaptR = 1;
+        else
+            force_adaptR = 0;
+        end
+        if (force_adaptR)
+
+            % Do not reduce force before grip is applied
+            Fzeros1 = zeros(int16(points/T*(time_g2(1)+time_g2(2)))-1);
+            Fzeros1 = Fzeros1(:,1);
+            Fzeros2 = zeros(int16(points/T*(time_g2(4)+time_g2(5))));
+            Fzeros2 = Fzeros2(:,1);
+            % Net change of force to whole trajectory
+            FRChange = [Fzeros1; RFdiff; Fzeros2];
+            % Net distance change to whole trajectory
+            distRChange = FRChange/stiffness;
+            % New trajectory path
+            refRg2 = refRg2 + distRChange;
+        
+            % PROBLEM: The moving to grip position and return sine does not reflect
+            % the new changes
+            % Regenerate the gripping profile to change the sine waves
+            temp = G2_axis_V3(time_g2, T, points, [refRg2(col_gf(2)) refRg2(col_gf(end))], Ts);
+            temp = temp(:,2);
+            % Integrate the change in gripping force
+            refRg2 = [temp(1:col_gf-1);refRg2(col_gf(1:end));temp(col_gf(end)+1:end)];
+    
+
+        end
+        enorm_FgL(i) = norm(LFdiff);
+        enorm_FgR(i) = norm(RFdiff);
+
+    end
+
+    % Decide if z should move
+    if (mean(yx(col_x1))>=A_x(1)-A_x(1)*0.03 && mean(yx(col_x2))>=A_x(2)-A_x(2)*0.03)
+        if (mean(yx(col_y1))>=A_y(2)-A_y(2)*0.03 && mean(yx(col_y2))>=A_y(2)-A_y(2)*0.03)
+            z_clear = 1;
+        end
+    end
+
+    % Decide if gripper should grip
+    if (abs(mean(yz(col_gL1)))>=0.055 - conveyer1 - obj_z + 0.005 && abs(mean(yz(col_gL2)))>=0.055 - conveyer2 - obj_z + 0.005)
+        gripL_clear = 1;
+    end
+    if (abs(mean(yz(col_gR1)))>=0.055 - conveyer1 - obj_z + 0.005 && abs(mean(yz(col_gR2)))>=0.055 - conveyer2 - obj_z + 0.005)
+        gripR_clear = 1;
+    end
+    
+    prev_firm_grip = firm_grip
+    % decide which trajectory to use 
     [row_g, col_g] = find(t>=time_g1(1)+time_g1(2) & t<=time_g1(1)+time_g1(2)+time_g1(3));
-    if (mean(LNormalF(col_g)) >= Fmin * 1.05 && mean(RNormalF(col_g)) >= Fmin * 1.05)
+    if (mean(LNormalF(col_g)) >= Fmin * 1.1 && mean(RNormalF(col_g)) >= Fmin * 1.1)
         firm_grip = 1;
     else
         firm_grip = 0;
     end
-    
 
+
+    % Calculate tracking error
+    e_x = refx - yx;
+    e_y = refy - yy;
+   
     if (firm_grip)
-        e_z = -refz2 - yz;
+        e_z = -refz1 - yz;
         e_gL = refLg2 - ygL;
         e_gR = refRg2 - ygR;
     else 
@@ -297,22 +418,6 @@ for i=1:N
     enorm_z(i) = norm(e_z);
     enorm_gL(i) = norm(e_gL);
     enorm_gR(i) = norm(e_gR);
-
-
-    % Decide if z should move
-    if (mean(yx(col_x1))>=A_x(1)-obj_x && mean(yx(col_x2))>=A_x(2)-obj_x)
-        if (mean(yx(col_y1))>=A_y(2)-obj_y && mean(yx(col_y2))>=A_y(2)-obj_y)
-            z_clear = 1;
-        end
-    end
-
-    % Decide if gripper should grip
-    if (abs(mean(yz(col_gL1)))>=0.055 - conveyer1 - obj_z + 0.005 && abs(mean(yz(col_gL2)))>=0.055 - conveyer2 - obj_z + 0.005)
-        gripL_clear = 1;
-    end
-    if (abs(mean(yz(col_gR1)))>=0.055 - conveyer1 - obj_z + 0.005 && abs(mean(yz(col_gR2)))>=0.055 - conveyer2 - obj_z + 0.005)
-        gripR_clear = 1;
-    end
 
     
     u_x  = u_x + inv(Rx+Qx*(G_x'*G_x))*Qx*G_x'*e_x;
@@ -336,8 +441,6 @@ for i=1:N
         u_gR = 0*t';
     end
 
-
-
    % u = u + noise;
     
 
@@ -352,7 +455,10 @@ for i=1:N
     gripR_pos_plt = [gripR_pos_plt ygR];
     gripL_FNormal_plt = [gripL_FNormal_plt LNormalF];
     gripR_FNormal_plt = [gripR_FNormal_plt RNormalF];
-    
+    gripR_FNormal_smooth_plt = [gripR_FNormal_smooth_plt RForceMeasured];
+
+    tracjecotryGL = [tracjecotryGL refLg2];
+
 
 end
 

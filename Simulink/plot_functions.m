@@ -59,7 +59,7 @@
 % xlabel("Time (s)");
 % ylabel("Force (N)");
 
-for i = 1:N
+for i = 16:N
 subplot(2,2,1)
 plot(t,gripL_pos_plt(:,i));
 xlabel("time(s)");
@@ -89,3 +89,4 @@ title("Right Gripper Force");
 hold on
 legend({'Trial 1','Trial 2','Trial 3','Trial 4','Trial 5','Trial 6','Trial 7','Trial 8','Trial 9','Trial 10'},'Location','northeast','FontSize',7)
 end
+plotbrowser('on')
