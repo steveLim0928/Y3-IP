@@ -1,3 +1,11 @@
+%% add grip min limit
+
+%% Why force never goes flat, probably because if it does, theres no acceleration means not moving. Since the ILC is accurate but not 100% reach target,
+%% each iteration theres some updates. Thinking of using Y output tracking to adjust the bottom line force needed to grip and transport
+%% Facc + Fgrip = Fn. we know Fn, so adjust Fgrip. Fgrip = Fn-Facc.
+
+
+
 close all;
 clear;
 clc;
@@ -36,7 +44,7 @@ refRg1 = refRg1(:,2);
 refRg2 = G2_axis_V3(time_g2, T, points, A_g2, Ts);
 refRg2 = refRg2(:,2);
 
-N = 40;
+N = 50;
 
 t = 0:Ts:T;
 t(1) = []; % remove t = 0
@@ -45,7 +53,7 @@ t(1) = []; % remove t = 0
 obj_x = 0.025;
 obj_y = 0.025;
 obj_z = 0.03;
-obj_density = 100000;
+obj_density = 106666.6667;
 obj_contactpt = 8;
 obj_coeff = 0.5;
 
@@ -91,7 +99,7 @@ kdg = 163.3421;
  TFx = tf([kdx kpx], [(mx+my+mz+2*mg+mo)*12.345679 kdx*12.345679 kpx*12.345679]);
  TFy = tf([kdy kpy], [(my+mz+2*mg+mo)*487.8 kdy*487.8 kpy*487.8]);
  TFz = tf([kdz kpz], [(mz+2*mg+mo)*1680.672269 kdz*1680.672269 kpz*1680.672269]);
- TFg = tf([kdg kpg], [(mg+mo)*1680.672269 kdg*1680.672269 kpg*1680.672269]);
+ TFg = tf([kdg kpg], [(mg+mo)*1625.672269 kdg*1625.672269 kpg*1625.672269]);
 %% 
 
 % discretise system
@@ -299,7 +307,7 @@ for i=1:N
         % Get the force when it is gripped
         LForceMeasured = LNormalF(col_gf(1:end));
         % Find the diff between actual grip force and ideal with margin
-        LFdiff = Fmin + 1 - smoothdata(LForceMeasured,'lowess');
+        LFdiff = Fmin*1.2 - LForceMeasured;
         if (abs((enorm_FgL(i-1)-norm(LFdiff))/enorm_FgL(i-1)*100) <= 5)
             force_adaptL = 1;
         elseif (firm_grip ~= prev_firm_grip)
@@ -320,6 +328,7 @@ for i=1:N
             distLChange = FLChange/stiffness;
             % New trajectory path
             refLg2 = ygL + 0.3*distLChange;
+            refLg2(refLg2<0.0105) = 0.0105;
         
             % PROBLEM: The moving to grip position and return sine does not reflect
             % the new changes
@@ -327,8 +336,9 @@ for i=1:N
             temp = G2_axis_V3(time_g2, T, points, [refLg2(col_gf(2)) refLg2(col_gf(end))], Ts);
             temp = temp(:,2);
             % Integrate the change in gripping force
-            refLg2 = [temp(1:col_gf-1);refLg2(col_gf(1:end));temp(col_gf(end)+1:end)];
+            refLg2 = [temp(1:col_gf-1);smoothdata(refLg2(col_gf(1:end)));temp(col_gf(end)+1:end)];
             adapt = adapt +1
+            
 
         end
 
@@ -337,7 +347,7 @@ for i=1:N
         % Get the force when it is gripped
         RForceMeasured = RNormalF(col_gf(1:end));
         % Find the diff between actual grip force and ideal with margin
-        RFdiff = Fmin + 1 - smoothdata(RForceMeasured,'lowess');
+        RFdiff = Fmin*1.2 - RForceMeasured;
         if (abs((enorm_FgR(i-1)-norm(RFdiff))/enorm_FgR(i-1)*100) <= 5)
             force_adaptR = 1;
         elseif (firm_grip ~= prev_firm_grip)
@@ -358,6 +368,7 @@ for i=1:N
             distRChange = FRChange/stiffness;
             % New trajectory path
             refRg2 = ygR + 0.3*distRChange;
+            refRg2(refRg2<0.0105) = 0.0105;
         
             % PROBLEM: The moving to grip position and return sine does not reflect
             % the new changes
@@ -365,7 +376,8 @@ for i=1:N
             temp = G2_axis_V3(time_g2, T, points, [refRg2(col_gf(2)) refRg2(col_gf(end))], Ts);
             temp = temp(:,2);
             % Integrate the change in gripping force
-            refRg2 = [temp(1:col_gf-1);refRg2(col_gf(1:end));temp(col_gf(end)+1:end)];
+            refRg2 = [temp(1:col_gf-1);smoothdata(refRg2(col_gf(1:end)));temp(col_gf(end)+1:end)];
+            
     
 
         end
