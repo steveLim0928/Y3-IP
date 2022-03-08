@@ -42,7 +42,7 @@ refRg1 = refRg1(:,2);
 refRg2 = G2_axis_V3(time_g2, T, points, A_g2, Ts);
 refRg2 = refRg2(:,2);
 
-N = 50;
+N = 15;
 
 t = 0:Ts:T;
 t(1) = []; % remove t = 0
