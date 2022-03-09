@@ -37,7 +37,7 @@ refRg1 = refRg1(:,2);
 refRg2 = G2_axis_V3(time_g2, T, points, A_g2, Ts);
 refRg2 = refRg2(:,2);
 
-N = 5;
+N = 10;
 
 t = 0:Ts:T;
 t(1) = []; % remove t = 0
@@ -216,12 +216,12 @@ for i=1:N
 %         end
         
 
-        model = sim('Impedance_Gantry_Model_V3.slx')
+        model = sim('Impedance_Gantry_Model_V4.slx')
 
-%         yx = model.outputx.Data();
-%         yx(1) = [];
-%         yy = model.outputy.Data();
-%         yy(1) = [];
+        yx = model.outputx.Data();
+        yx(1) = [];
+        yy = model.outputy.Data();
+        yy(1) = [];
         yz = model.outputz.Data();
         yz(1) = [];
 %         ygL = model.outputgL.Data();
@@ -238,27 +238,27 @@ for i=1:N
     end
 
     % Decide if z should move
-%     if (mean(yx(col_x1))>=A_x(1)-A_x(1)*0.03 && mean(yx(col_x2))>=A_x(2)-A_x(2)*0.03)
-%         if (mean(yx(col_y1))>=A_y(2)-A_y(2)*0.03 && mean(yx(col_y2))>=A_y(2)-A_y(2)*0.03)
-%             z_clear = 1;
-%         end
-%     end
-    z_clear = 1;
+    if (mean(yx(col_x1))>=A_x(1)-A_x(1)*0.03 && mean(yx(col_x2))>=A_x(2)-A_x(2)*0.03)
+        if (mean(yx(col_y1))>=A_y(2)-A_y(2)*0.03 && mean(yx(col_y2))>=A_y(2)-A_y(2)*0.03)
+            z_clear = 1;
+        end
+    end
+%     z_clear = 1;
 
 
     % Calculate tracking error
-%     e_x = refx - yx;
-%     e_y = refy - yy;
+    e_x = refx - yx;
+    e_y = refy - yy;
     e_z = -refz1 - yz;
 
 
-%     enorm_x(i) = norm(e_x);
-%     enorm_y(i) = norm(e_y);
+    enorm_x(i) = norm(e_x);
+    enorm_y(i) = norm(e_y);
     enorm_z(i) = norm(e_z);
 
     
-%     u_x  = u_x + inv(Rx+Qx*(G_x'*G_x))*Qx*G_x'*e_x;
-%     u_y  = u_y + inv(Ry+Qy*(G_y'*G_y))*Qy*G_y'*e_y;
+    u_x  = u_x + inv(Rx+Qx*(G_x'*G_x))*Qx*G_x'*e_x;
+    u_y  = u_y + inv(Ry+Qy*(G_y'*G_y))*Qy*G_y'*e_y;
     %u_y  = u_y + inv(Ry+G_y'*Qy*G_y)*G_y'* Qy*e_y;
     if (z_clear)
         u_z  = u_z + inv(Rz+Qz*(G_z'*G_z))*Qz*G_z'*e_z;
@@ -266,8 +266,8 @@ for i=1:N
         u_z = 0*t';
     end
 
-%     x_pos_plt = [x_pos_plt yx];
-%     y_pos_plt = [y_pos_plt yy];
+    x_pos_plt = [x_pos_plt yx];
+    y_pos_plt = [y_pos_plt yy];
     z_pos_plt = [z_pos_plt yz];
 %     gripL_pos_plt = [gripL_pos_plt ygL];
 %     gripR_pos_plt = [gripR_pos_plt ygR];
@@ -280,12 +280,12 @@ for i=1:N
 
 end
 
-% final_enorm_x = norm(e_x)
-% enorm_x(1)
-% % accuracy_x = enorm_x(25)/enorm_x(1)*100
-% final_enorm_y = norm(e_y)
-% enorm_y(1)
-% accuracy_y = enorm_y(25)/enorm_y(1)*100
+final_enorm_x = norm(e_x)
+enorm_x(1)
+
+final_enorm_y = norm(e_y)
+enorm_y(1)
+
 final_enorm_z = norm(e_z)
 enorm_z(1)
 % accuracy_z = enorm_z(25)/enorm_z(1)*100
@@ -307,10 +307,10 @@ enorm_z(1)
 % plot(1:N,enorm_gR); xlabel('Trial, k'); ylabel('Error Norm'); title('gripper 2');
 subplot(3,3,6)
 plot(1:N,enorm_z); xlabel('Trial, k'); ylabel('Error Norm'); title('z axis');
-% subplot(3,3,5)
-% plot(1:N,enorm_y); xlabel('Time (s)'); ylabel('Error Norm'); title('y axis');
-% subplot(3,3,4)
-% plot(1:N,enorm_x); xlabel('Trial, k'); ylabel('Error Norm');title('x axis');
+subplot(3,3,5)
+plot(1:N,enorm_y); xlabel('Trial, k'); ylabel('Error Norm'); title('y axis');
+subplot(3,3,4)
+plot(1:N,enorm_x); xlabel('Trial, k'); ylabel('Error Norm');title('x axis');
 % subplot(3,3,7)
 % plot(1:N,enorm_FgL); xlabel('Trial, k'); ylabel('Error Norm');title('Left Gripper Force');
 % subplot(3,3,8)
