@@ -224,6 +224,18 @@ for i=1:N
         yy(1) = [];
         yz = model.outputz.Data();
         yz(1) = [];
+
+        LFNormal = model.LFNormal.Data();
+        LFNormal(1) = [];
+        RFNormal = model.RFNormal.Data();
+        RFNormal(1) = [];
+        RFFriction = model.RFFriction.Data();
+        RFFriction(1) = [];
+
+        LGPosAdj = model.LGPosAdj.Data();
+        LGPosAdj(1) = [];
+        RGPosAdj = model.RGPosAdj.Data();
+        RGPosAdj(1) = [];
 %         ygL = model.outputgL.Data();
 %         ygL(1) = [];
 %         ygR = model.outputgR.Data();
