@@ -234,6 +234,9 @@ for i=1:N
 %         RNormalF = model.RNormalForce.Data();
 %         RNormalF(1) = [];
 
+        force = model.FNormal.Data();
+        force(1) = [];
+
        
     end
 
