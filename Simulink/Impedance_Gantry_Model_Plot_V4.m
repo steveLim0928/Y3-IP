@@ -1,15 +1,15 @@
 
 %%% Normal Force plotting
-% subplot(1,2,1)
-% plot(t,LFNormal);
-% xlabel("time(s)");
-% ylabel("Force (N)");
-% title("Left Gripper Force");
-% subplot(1,2,2)
-% plot(t,RFNormal);
-% xlabel("time(s)");
-% ylabel("Force (N)");
-% title("Right Gripper Force");
+subplot(1,2,1)
+plot(t,LFNormal);
+xlabel("time(s)");
+ylabel("Force (N)");
+title("Left Gripper Force");
+subplot(1,2,2)
+plot(t,RFNormal);
+xlabel("time(s)");
+ylabel("Force (N)");
+title("Right Gripper Force");
 
 %%% Friction Force plotting
 % plot(t,RFFriction);
