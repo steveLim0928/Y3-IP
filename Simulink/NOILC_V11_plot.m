@@ -1,45 +1,49 @@
-% for i=6:11
-% subplot(2,1,1)
-% plot(t, z_pos_plt(:,i));
-% title("Z axis relative position");
-% xlabel("Time (s)");
-% ylabel("Displacement (m)");
-% hold on
-% legend({'Trial 6','Trial 7','Trial 8','Trial 9','Trial 10','Trial 11'},'Location','northeast','FontSize',7)
-% subplot(2,1,2)
-% plot(t, z_input_plt(:,i));
-% title("Z axis input signal (No disturbance)");
-% xlabel("Time (s)");
-% ylabel("Input signal");
-% hold on
-% legend({'Trial 6','Trial 7','Trial 8','Trial 9','Trial 10','Trial 11'},'Location','northeast','FontSize',7)
-% end
+for i=30:35
+subplot(2,1,1)
+plot(t, gripL_pos_plt(:,i));
+title("Left Gripper relative position");
+xlabel("Time (s)");
+ylabel("Displacement (m)");
+hold on
+legend({'Trial 30','Trial 31','Trial 32','Trial 33','Trial 34','Trail 35'},'Location','northeast','FontSize',7)
+subplot(2,1,2)
+plot(t, gL_input_plt(:,i));
+title("Left Gripper input signal (No disturbance)");
+xlabel("Time (s)");
+ylabel("Input signal");
+hold on
+legend({'Trial 30','Trial 31','Trial 32','Trial 33','Trial 34','Trail 35'},'Location','northeast','FontSize',7)
+end
 
 % close all;
 % clear;
 % clc;
 
 %% Error from the beginning
-% save('z_axis_0','enorm_z_0')
-% save('z_axis_0_0_5','enorm_z_0_0_5')
-% save('z_axis_0_1','enorm_z_0_1')
+% save('gL_axis_0','enorm_gL_0')
+% save('gL_axis_0_0_5','enorm_gL_0_0_5')
+% save('gL_axis_0_1','enorm_gL_0_1')
 
 % 
-% load('z_axis_0.mat');
-% load('z_axis_0_0_5.mat');
-% load('z_axis_0_1.mat');
+% load('gL_axis_0.mat');
+% load('gL_axis_0_0_5.mat');
+% load('gL_axis_0_1.mat');
 % 
 % 
-% plot(enorm_z_0);
+% plot(enorm_gL_0);
 % hold on
-% plot(enorm_z_0_0_5);
-% plot(enorm_z_0_1);
+% plot(enorm_gL_0_0_5);
+% plot(enorm_gL_0_1);
 % xlabel("Iteration (k)");
 % ylabel("Error Norm");
-% xticks(linspace(0,i,16))
+% xticks([1:N]);
 % title('Normalised error for different iteration under different magnitude of disturbance')
 % 
 % legend({'0% Disturbance','5% Disturbance','10% Disturbance'},'Location','northeast','FontSize',7)
+
+% save('gR_axis_0','enorm_gR_0')
+% save('gR_axis_0_0_5','enorm_gR_0_0_5')
+% save('gR_axis_0_1','enorm_gR_0_1')
 
 
 %% Error comes midway, after 5 iterations
@@ -66,9 +70,9 @@
 
 %% Impulse disturbance at 10th iteration
 
-plot(1:N,enorm_z); xlabel('Time (s)'); ylabel('Error Norm'); title('z axis');
-xlim([25,35])
-xticks([1:N]);
+% plot(1:N,enorm_z); xlabel('Time (s)'); ylabel('Error Norm'); title('z axis');
+% xlim([25,35])
+% xticks([1:N]);
 
 % for i=29:35
 %     plot(t,z_pos_plt(:,i));
@@ -138,24 +142,31 @@ xticks([1:N]);
 % 
 % end
 
-for i=32:35
-    subplot(1,2,1)
-    plot(t,gripL_pos_plt(:,i));
-    xlabel("Time (s)");
-    ylabel("Displacement (m)");
-    title('Position feedback of Left Gripper (20Hz disturbance at 30th iteration)')
-    legend({'32th Iteration','33th Iteration','34th Iteration','35th Iteration'},'Location','northeast','FontSize',7)
-    ylim([0.0115,0.0129]);
-    hold on
-    subplot(1,2,2)
-    plot(t,gripR_pos_plt(:,i));
-    xlabel("Time (s)");
-    ylabel("Displacement (m)");
-    title('Position feedback of Right Gripper (20Hz disturbance at 30th iteration)')
-    legend({'29th Iteration','30th Iteration','31th Iteration','32th Iteration'},'Location','northeast','FontSize',7)
-    ylim([0.0115,0.0129]);
-    hold on
-
-end
+% for i=33:35
+%     subplot(1,2,1)
+%     plot(t,gripL_pos_plt(:,i));
+%     xlabel("Time (s)");
+%     ylabel("Displacement (m)");
+%     title('Position feedback of Left Gripper (20Hz disturbance at 30th iteration)')
+%     legend({'33th Iteration','34th Iteration','35th Iteration','29 iteration'},'Location','northeast','FontSize',7)
+%     ylim([0.0115,0.0129]);
+%     hold on
+%     subplot(1,2,2)
+%     plot(t,gripR_pos_plt(:,i));
+%     xlabel("Time (s)");
+%     ylabel("Displacement (m)");
+%     title('Position feedback of Right Gripper (20Hz disturbance at 30th iteration)')
+%     legend({'33th Iteration','34th Iteration','35th Iteration','29 iteration'},'Location','northeast','FontSize',7)
+%     ylim([0.0115,0.0129]);
+%     hold on
+% 
+% end
+% 
+% subplot(1,2,1)
+% plot(t,gripL_pos_plt(:,29));
+% legend({'33th Iteration','34th Iteration','35th Iteration','29th iteration'},'Location','northeast','FontSize',7)
+% subplot(1,2,2)
+% plot(t,gripR_pos_plt(:,29));
+% legend({'33th Iteration','34th Iteration','35th Iteration','29th iteration'},'Location','northeast','FontSize',7)
 
 
