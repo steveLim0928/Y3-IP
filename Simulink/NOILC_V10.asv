@@ -26,9 +26,12 @@ A_g2 =[0.0115+0.003 0.0115+0.003];
 
 % Scenario 1 2 and 3
 A_disturbance_x = [0.1];
-A_disturbance_y = [7.5];
+A_disturbance_y = [2.4];
+A_disturbance_z = [-0.916];
 % Scenario 2 and 3
 time_disturbance_x = [2.3 0.2 0.2 0.2 2.1];
+time_disturbance_y = [2.3 0.2 0.2 0.2 2.1];
+time_disturbance_z = [2.2 0.2 0.2 0.2 2.2];
 
 % Scenario 3
 frequency = 10;
@@ -56,7 +59,16 @@ refRg2 = refRg2(:,2);
 % disturbance_x = sine_disturbance(T,points,A_disturbance_x,frequency);
 % disturbance_x = disturbance_x(:,2);
 
-N = 15;
+% disturbance_y = impulse_disturbance(time_disturbance_y,T,points,A_disturbance_y,Ts);
+% disturbance_y = sine_disturbance(T,points,A_disturbance_y,frequency);
+% disturbance_y = disturbance_y(:,2);
+
+% disturbance_z = A_disturbance_z;
+% disturbance_z = impulse_disturbance(time_disturbance_z,T,points,A_disturbance_z,Ts);
+disturbance_z = sine_disturbance(T,points,A_disturbance_z,frequency);
+disturbance_z = disturbance_z(:,2);
+
+N = 35;
 
 t = 0:Ts:T;
 t(1) = []; % remove t = 0
@@ -94,7 +106,6 @@ mx = 0.64*0.05*0.05*2700;
 my = 0.05*0.52*0.05*2700;
 mz = 0.025*0.025*0.1*2700;
 mg = 0.05*0.01*0.03*2700;
-%% 
 
 % PD val for each axis to mimic actual TF
 kpx = 27146.6747627399;
@@ -105,14 +116,12 @@ kpz = 33734.3806;
 kdz = 163.3421;
 kpg = 33734.3806;
 kdg = 163.3421;
-%% 
 
 % Define model tf
  TFx = tf([kdx kpx], [(mx+my+mz+2*mg+mo)*12.345679 kdx*12.345679 kpx*12.345679]);
  TFy = tf([kdy kpy], [(my+mz+2*mg+mo)*487.8 kdy*487.8 kpy*487.8]);
  TFz = tf([kdz kpz], [(mz+2*mg+mo)*1680.672269 kdz*1680.672269 kpz*1680.672269]);
  TFg = tf([kdg kpg], [(mg+mo)*1625.672269 kdg*1625.672269 kpg*1625.672269]);
-%% 
 
 % discretise system
  sysdx = ss(c2d(TFx,Ts));
@@ -204,6 +213,7 @@ x_input_plt = [];
 y_pos_plt = [];
 y_input_plt = [];
 z_pos_plt = [];
+z_input_plt = [];
 gripL_pos_plt = [];
 gripR_pos_plt = [];
 gripL_FNormal_plt = [];
@@ -224,6 +234,7 @@ for i=1:N
 
     x_input_plt = [x_input_plt u_x];
     y_input_plt = [y_input_plt u_y];
+    z_input_plt = [z_input_plt u_z];
     
 
     % Find the position where deadtime is at
@@ -274,14 +285,15 @@ for i=1:N
         
     else
        % model = sim()
-       if (i >= 10)
-           u_y_d = u_y + disturbance_y;
+       if (i >= 30)
+           u_z_d = u_z + disturbance_z;
        else
-           u_y_d = u_y;
-%        end
+           u_z_d = u_z;
+       end
 %         inputx = timeseries(u_x_d,t);
         inputx = timeseries(u_x,t);
         inputy = timeseries(u_y,t);
+%         inputy = timeseries(u_y_d,t);
 %         if (z_clear)
 %             inputz = timeseries(u_z,t);
 %             if (grip1_clear)
@@ -295,7 +307,8 @@ for i=1:N
 %                 inputg2 = timeseries(u_g2,t);
 %             end
 %         else 
-        inputz = timeseries(u_z,t);
+%         inputz = timeseries(u_z,t);
+        inputz = timeseries(u_z_d,t);
         inputgL = timeseries(u_gL,t);
         inputgR = timeseries(u_gR,t);
         tIn = timeseries(t,t);
@@ -435,7 +448,7 @@ for i=1:N
     prev_firm_grip = firm_grip
     % decide which trajectory to use 
     [row_g, col_g] = find(t>=time_g1(1)+time_g1(2) & t<=time_g1(1)+time_g1(2)+time_g1(3));
-    if (mean(LNormalF(col_g)) >= Fmin * 1.1 && mean(RNormalF(col_g)) >= Fmin * 1.1)
+    if (mean(LNormalF(col_g)) >= Fmin * 1.2 && mean(RNormalF(col_g)) >= Fmin * 1.2)
         firm_grip = 1;
     else
         firm_grip = 0;
@@ -506,7 +519,7 @@ for i=1:N
 
 end
 
-enorm_x_0_2_mid = enorm_x;
+enorm_z_0_1_mid = enorm_z;
 
 final_enorm_x = norm(e_x)
 enorm_x(1)
