@@ -2,58 +2,23 @@
 close all;
 
 % subplot(1,2,1)
-% plot(1:N,enorm_gL); xlabel('Iteration (k)'); ylabel('Error Norm'); title('Left Gripper Position Error');
-% % xticks([1:N]);
+% plot(1:N,enorm_gL); xlabel('Iteration (k)'); ylabel('Error Norm'); title('Left Gripper Position Feedback');
+% xticks([1:N]);
 % subplot(1,2,2)
-% plot(1:N,enorm_gR); xlabel('Iteration (k)'); ylabel('Error Norm'); title('Right Gripper Position Error');
-% % xticks([1:N]);
+% plot(1:N,enorm_gR); xlabel('Iteration (k)'); ylabel('Error Norm'); title('Right Gripper Position Feedback');
+% xticks([1:N]);
 
 % subplot(1,2,1)
-% plot(1:N,enorm_FgL); xlabel('Iteration (k)'); ylabel('Error Norm'); title('Left Gripper Force Error');
-% % xticks([1:N]);
+% plot(1:N,enorm_FgL); xlabel('Iteration (k)'); ylabel('Error Norm'); title('Left Gripper Force Feedback');
+% xticks([1:N]);
 % subplot(1,2,2)
-% plot(1:N,enorm_FgR); xlabel('Iteration (k)'); ylabel('Error Norm'); title('Right Gripper Force Error');
-% % xticks([1:N]);
+% plot(1:N,enorm_FgR); xlabel('Iteration (k)'); ylabel('Error Norm'); title('Right Gripper Force Feedback');
+% xticks([1:N]);
 
-% subplot(2,1,1);
-% plot(t,u_gL_d);
-% xlabel('Time (s)');
-% ylabel('Amplitude');
-% title("Left Gripper Input Signal");
-% subplot(2,1,2);
-% plot(t,u_gR_d);
-% xlabel('Time (s)');
-% ylabel('Amplitude');
-% title("Right Gripper Input Signal");
-
-% subplot(2,1,1);
-% plot(t,gripL_FNormal_plt(:,30));
-% xlabel('Time (s)');
-% ylabel('Force (s)');
-% title("Left Gripper Force Feedback (30th iteration)");
-% subplot(2,1,2);
-% plot(t,gripR_FNormal_plt(:,30));
-% xlabel('Time (s)');
-% ylabel('Force (s)');
-% title("Left Gripper Force Feedback (30th iteration)");
-
-% subplot(2,1,1);
-% plot(t,gripL_FNormal_plt(:,35));
-% xlabel('Time (s)');
-% ylabel('Force (s)');
-% title("Left Gripper Force Feedback (35th iteration)");
-% subplot(2,1,2);
-% plot(t,gripR_FNormal_plt(:,35));
-% xlabel('Time (s)');
-% ylabel('Force (s)');
-% title("Left Gripper Force Feedback (35th iteration)");
-
-plot(t,ygL);
+subplot(2,1,1);
+plot(t,u_gR_d);
 xlabel('Time (s)');
-ylabel('Displacement (m)');
-title("Left Gripper Position Feedback");
-
-
+ylabel('A')
 
 % for i=30:35
 % subplot(2,1,1)
@@ -263,7 +228,7 @@ title("Left Gripper Position Feedback");
 
 %% Impulse disturbance at 30th iteration
 
-% close all;
+close all;
 
 % subplot(1,2,1)
 % plot(1:N,enorm_gL); xlabel('Iteration (k)'); ylabel('Error Norm'); title('Left Gripper Position Feedback');
@@ -335,7 +300,7 @@ title("Left Gripper Position Feedback");
 
 %% AC disturbance at 10th iteration.
 
-% close all;
+close all;
 
 % subplot(1,2,1)
 % plot(1:N,enorm_gL); xlabel('Iteration (k)'); ylabel('Error Norm'); title('Left Gripper Position Feedback');
