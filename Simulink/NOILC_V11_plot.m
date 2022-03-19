@@ -48,7 +48,7 @@ close all;
 % ylabel('Force (s)');
 % title("Left Gripper Force Feedback (35th iteration)");
 
-plot(t,ygL);
+plot(t,ygL(:,N));
 xlabel('Time (s)');
 ylabel('Displacement (m)');
 title("Left Gripper Position Feedback");

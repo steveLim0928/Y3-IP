@@ -192,7 +192,6 @@ QgR = eye(size(G_gR))*2000;
 I = eye(size(G_gR))*0.1;
 QgFR = eye(size(G_gR))*300;
 
-u_x_d = 0*t';
 
 % create vectors to store results 
 u_x = 0*t'; % start from zero. Could start from ref, but results worse

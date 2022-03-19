@@ -24,9 +24,15 @@ A_g1 = [0.0115+0.003 0.0115-0.0002];
 time_g2 = [0.8 0.4 2.6 0.4 0.8];
 A_g2 =[0.0115+0.003 0.0115+0.003];
 
-time_disturbance_x = [2.3 0.2 0.2 0.2 2.1];
+error_start = 30;
+
+% Scenario 1 2 and 3
 A_disturbance_x = [0.1];
-frequency = 10;
+% Scenario 2 and 3
+time_disturbance_x = [2.4 0.1 0.2 0.1 2.2];
+
+% Scenario 3
+frequency = 20;
 
 % tracking reference
 refx = X_axis_V3(time_x, T, points, A_x, Ts);
@@ -50,8 +56,9 @@ refRg2 = refRg2(:,2);
 % disturbance_x = impulse_disturbance(time_disturbance_x,T,points,A_disturbance_x,Ts);
 disturbance_x = sine_disturbance(T,points,A_disturbance_x,frequency);
 disturbance_x = disturbance_x(:,2);
+% disturbance_x = A_disturbance_x;
 
-N = 15;
+N = 40;
 
 t = 0:Ts:T;
 t(1) = []; % remove t = 0
@@ -89,7 +96,7 @@ mx = 0.64*0.05*0.05*2700;
 my = 0.05*0.52*0.05*2700;
 mz = 0.025*0.025*0.1*2700;
 mg = 0.05*0.01*0.03*2700;
-%% 
+
 
 % PD val for each axis to mimic actual TF
 kpx = 27146.6747627399;
@@ -100,14 +107,14 @@ kpz = 33734.3806;
 kdz = 163.3421;
 kpg = 33734.3806;
 kdg = 163.3421;
-%% 
+
 
 % Define model tf
  TFx = tf([kdx kpx], [(mx+my+mz+2*mg+mo)*12.345679 kdx*12.345679 kpx*12.345679]);
  TFy = tf([kdy kpy], [(my+mz+2*mg+mo)*487.8 kdy*487.8 kpy*487.8]);
  TFz = tf([kdz kpz], [(mz+2*mg+mo)*1680.672269 kdz*1680.672269 kpz*1680.672269]);
  TFg = tf([kdg kpg], [(mg+mo)*1625.672269 kdg*1625.672269 kpg*1625.672269]);
-%% 
+ 
 
 % discretise system
  sysdx = ss(c2d(TFx,Ts));
@@ -158,16 +165,15 @@ Qy = eye(size(G_y))*400;
 Rz = eye(size(G_z))*0.0001; 
 Qz = eye(size(G_z))*1500;
 
-RgL = eye(size(G_gL))*0.0001; 
-QgL = eye(size(G_gL))*1500;
+RgL = eye(size(G_gL))*0.00005; 
+QgL = eye(size(G_gL))*2000;
 
-RgR = eye(size(G_gR))*0.0001; 
-QgR = eye(size(G_gR))*1500;
+RgR = eye(size(G_gR))*0.00005; 
+QgR = eye(size(G_gR))*2000;
 
 I = eye(size(G_gR))*0.1;
 QgFR = eye(size(G_gR))*300;
 
-u_x_d = 0*t';
 
 % create vectors to store results 
 u_x = 0*t'; % start from zero. Could start from ref, but results worse
@@ -199,24 +205,30 @@ x_input_plt = [];
 y_pos_plt = [];
 z_pos_plt = [];
 gripL_pos_plt = [];
+gL_input_plt = [];
 gripR_pos_plt = [];
+gR_input_plt = [];
 gripL_FNormal_plt = [];
 gripR_FNormal_plt = [];
 gripR_FNormal_smooth_plt = [];
 tracjecotryGL = [];
+tracjecotryGR = [];
 
 enorm_FgL = zeros(N,1);
 enorm_FgR = zeros(N,1);
 adapt = 0;
 prev_firm_grip = 0;
+objDrop = 0;
 
 for i=1:N
     i
     firm_grip
-    force_adaptL
-    force_adaptR
+%     force_adaptL
+%     force_adaptR
 
     x_input_plt = [x_input_plt u_x];
+    gL_input_plt = [gL_input_plt u_gL];
+    gR_input_plt = [gR_input_plt u_gR];
     
 
     % Find the position where deadtime is at
@@ -267,7 +279,7 @@ for i=1:N
         
     else
        % model = sim()
-       if (i >= 100)
+       if (i >= error_start)
            u_x_d = u_x + disturbance_x;
        else
            u_x_d = u_x;
@@ -291,7 +303,6 @@ for i=1:N
         inputgL = timeseries(u_gL,t);
         inputgR = timeseries(u_gR,t);
         tIn = timeseries(t,t);
-        disturbancex = timeseries(disturbance_x,t);
 %         end
         
 
@@ -349,8 +360,8 @@ for i=1:N
             distLChange = FLChange/stiffness;
             % New trajectory path
 %             refLg2 = ygL + inv(I+QgFR*(G_gL'*G_gL))*QgFR*G_gL'*distLChange;
-            refLg2 = ygL + 0.3*distLChange;
-            refLg2(refLg2<0.0105) = 0.0105;
+            refLg2 = ygL + 0.5*distLChange;
+%             refLg2(refLg2<0.0105) = 0.0105;
         
             % PROBLEM: The moving to grip position and return sine does not reflect
             % the new changes
@@ -390,8 +401,8 @@ for i=1:N
             distRChange = FRChange/stiffness;
             % New trajectory path
 %             refRg2 = ygR + inv(I+QgFR*(G_gR'*G_gR))*QgFR*G_gR'*distRChange;
-            refRg2 = ygR + 0.3*distRChange;
-            refRg2(refRg2<0.0105) = 0.0105;
+            refRg2 = ygR + 0.5*distRChange;
+%             refRg2(refRg2<0.0105) = 0.0105;
         
             % PROBLEM: The moving to grip position and return sine does not reflect
             % the new changes
@@ -427,10 +438,29 @@ for i=1:N
     prev_firm_grip = firm_grip
     % decide which trajectory to use 
     [row_g, col_g] = find(t>=time_g1(1)+time_g1(2) & t<=time_g1(1)+time_g1(2)+time_g1(3));
-    if (mean(LNormalF(col_g)) >= Fmin * 1.1 && mean(RNormalF(col_g)) >= Fmin * 1.1)
+    if (mean(LNormalF(col_g)) >= Fmin * 1.05 && mean(RNormalF(col_g)) >= Fmin * 1.05)
+        if (mean(LNormalF(col_g)) >= Fmin * 1.2 && mean(RNormalF(col_g)) >= Fmin * 1.2)
+            refLg1 = G1_axis_V3(time_g1, T, points, [refLg2(col_g(8)) 0.0115-0.0002], Ts);
+            refLg1 = refLg1(:,2);
+    %         refLg1(col_g) = refLg2(col_g);
+            refRg1 = G1_axis_V3(time_g1, T, points, [refRg2(col_g(8)) 0.0115-0.0002], Ts);
+            refRg1 = refRg1(:,2);
+    %         refRg1(col_g) = refRg2(col_g);
+        end
         firm_grip = 1;
+        objDrop = 1;
+    elseif (mean(LNormalF(col_g)) >= Fmin && mean(RNormalF(col_g)) >= Fmin && firm_grip ==1)
+        firm_grip = 1;
+        objDrop = 1;
+    elseif ((prev_firm_grip == 1 && firm_grip == 0) || objDrop == 1)
+%         refLg2 = G2_axis_V3(time_g2, T, points, [refLg2(col_g(8))+1.05 refLg2(col_g(8))+1.05], Ts);
+%         refLg2 = refLg2(:,2);
+%         refRg2 = G2_axis_V3(time_g2, T, points, [refRg2(col_g(8))+1.05 refRg2(col_g(8))+1.05], Ts);
+%         refRg2 = refRg2(:,2);
+        objDrop = 1;
     else
         firm_grip = 0;
+        objDrop = 0;
     end
 
 
@@ -444,8 +474,8 @@ for i=1:N
         e_gR = refRg2 - ygR;
     else 
         e_z = -refz1 - yz;
-        e_gL = refLg2 - ygL;
-        e_gR = refRg2 - ygR;
+        e_gL = refLg1 - ygL;
+        e_gR = refRg1 - ygR;
     end
 
     enorm_x(i) = norm(e_x);
@@ -460,12 +490,12 @@ for i=1:N
     %u_y  = u_y + inv(Ry+G_y'*Qy*G_y)*G_y'* Qy*e_y;
     if (z_clear)
         u_z  = u_z + inv(Rz+Qz*(G_z'*G_z))*Qz*G_z'*e_z;
-        if (1)
+        if (gripL_clear)
             u_gL  = u_gL + inv(RgL+QgL*(G_gL'*G_gL))*QgL*G_gL'*e_gL;
         else
             u_gL = u_gL + 0*t';
         end
-        if (1)
+        if (gripR_clear)
             u_gR  = u_gR + inv(RgR+QgR*(G_gR'*G_gR))*QgR*G_gR'*e_gR;
         else 
             u_gR = u_gR + 0*t';
@@ -494,11 +524,29 @@ for i=1:N
     gripR_FNormal_smooth_plt = [gripR_FNormal_smooth_plt RForceMeasured];
 
     tracjecotryGL = [tracjecotryGL refLg2];
+    tracjecotryGR = [tracjecotryGR refRg2];
 
 
 end
 
-enorm_x_0_2_mid = enorm_x;
+enorm_x_0_mid = enorm_x;
+% enorm_x_0_0_5_mid = enorm_x;
+% enorm_x_0_1_mid = enorm_x;
+
+% enorm_x_0 = enorm_x;
+% enorm_x_0_0_5 = enorm_x;
+% enorm_x_0_1 = enorm_x;
+
+enorm_gL_0_mid = enorm_gL;
+enorm_gR_0_mid = enorm_gR;
+enorm_FgL_0_mid = enorm_FgL;
+enorm_FgR_0_mid = enorm_FgR;
+
+% enorm_gL_0_1 = enorm_gL;
+% enorm_gR_0_1 = enorm_gR;
+% enorm_FgL_0_1 = enorm_FgL;
+% enorm_FgR_0_1 = enorm_FgR;
+
 
 final_enorm_x = norm(e_x)
 enorm_x(1)
