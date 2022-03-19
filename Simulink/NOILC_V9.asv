@@ -34,7 +34,7 @@ time_disturbance_x = [2.4 0.1 0.2 0.1 2.2];
 time_disturbance_y = [2.4 0.1 0.2 0.1 2.2];
 
 % Scenario 3
-frequency = 20;
+frequency = 5;
 
 % tracking reference
 refx = X_axis_V3(time_x, T, points, A_x, Ts);
@@ -60,8 +60,8 @@ refRg2 = refRg2(:,2);
 % disturbance_x = disturbance_x(:,2);
 % disturbance_x = A_disturbance_x;
 
-% disturbance_y = impulse_disturbance(time_disturbance_y,T,points,A_disturbance_y,Ts);
-disturbance_y = sine_disturbance(T,points,A_disturbance_y,frequency);
+disturbance_y = impulse_disturbance(time_disturbance_y,T,points,A_disturbance_y,Ts);
+% disturbance_y = sine_disturbance(T,points,A_disturbance_y,frequency);
 disturbance_y = disturbance_y(:,2);
 % disturbance_y = A_disturbance_y;
 
