@@ -16,25 +16,27 @@ A_x = [0.5 0.3];
 time_y = [0.8 1.4 0.8 1.2 0.8];
 A_y = [0.3 0.1];
 time_z1 = [0.8 0.3 0.6 0.3 0.2 0.8 0.3 0.6 0.3 0.8];
-A_z1 = [0.037 0.027];   
+A_z1 = [0.037 0.0265];   
 time_z2 = [0.8 0.3 0.6 0.3 0.2 0.8 0.3 0.6 0.3 0.8];
-A_z2 = [0.037 0.027];
+A_z2 = [0.037 0.0265];
 time_g1 = [0.8 0.4 0.2 0.3 2.1 0.4 0.8];
 A_g1 = [0.0115+0.003 0.0115-0.0002];
 time_g2 = [0.8 0.4 2.6 0.4 0.8];
 A_g2 =[0.0115+0.003 0.0115+0.003];
 
-error_start = 30;
+error_start = 0;
 
 % Scenario 1 2 and 3
 A_disturbance_x = [0.1];
 A_disturbance_y = [2.4];
+A_disturbance_z = [-5.74/2];
 % Scenario 2 and 3
 time_disturbance_x = [2.4 0.1 0.2 0.1 2.2];
 time_disturbance_y = [2.4 0.1 0.2 0.1 2.2];
+time_disturbance_z = [2.3 0.1 0.2 0.1 2.3];
 
 % Scenario 3
-frequency = 5;
+frequency = 20;
 
 % tracking reference
 refx = X_axis_V3(time_x, T, points, A_x, Ts);
@@ -60,10 +62,15 @@ refRg2 = refRg2(:,2);
 % disturbance_x = disturbance_x(:,2);
 % disturbance_x = A_disturbance_x;
 
-disturbance_y = impulse_disturbance(time_disturbance_y,T,points,A_disturbance_y,Ts);
+% disturbance_y = impulse_disturbance(time_disturbance_y,T,points,A_disturbance_y,Ts);
 % disturbance_y = sine_disturbance(T,points,A_disturbance_y,frequency);
-disturbance_y = disturbance_y(:,2);
+% disturbance_y = disturbance_y(:,2);
 % disturbance_y = A_disturbance_y;
+
+% disturbance_z = impulse_disturbance(time_disturbance_z,T,points,A_disturbance_z,Ts);
+% disturbance_z = sine_disturbance(T,points,A_disturbance_z,frequency);
+% disturbance_z = disturbance_z(:,2);
+disturbance_z = A_disturbance_z;
 
 N = 40;
 
@@ -209,6 +216,7 @@ x_input_plt = [];
 y_pos_plt = [];
 y_input_plt = [];
 z_pos_plt = [];
+z_input_plt = [];
 gripL_pos_plt = [];
 gL_input_plt = [];
 gripR_pos_plt = [];
@@ -233,6 +241,7 @@ for i=1:N
 
     x_input_plt = [x_input_plt u_x];
     y_input_plt = [y_input_plt u_y];
+    z_input_plt = [z_input_plt u_z];
     gL_input_plt = [gL_input_plt u_gL];
     gR_input_plt = [gR_input_plt u_gR];
     
@@ -286,14 +295,14 @@ for i=1:N
     else
        % model = sim()
        if (i >= error_start)
-           u_y_d = u_y + disturbance_y;
+           u_z_d = u_z + disturbance_z;
        else
-           u_y_d = u_y;
+           u_z_d = u_z;
        end
 %         inputx = timeseries(u_x_d,t);
         inputx = timeseries(u_x,t);
-%         inputy = timeseries(u_y,t);
-        inputy = timeseries(u_y_d,t);
+        inputy = timeseries(u_y,t);
+%         inputy = timeseries(u_y_d,t);
 %         if (z_clear)
 %             inputz = timeseries(u_z,t);
 %             if (grip1_clear)
@@ -307,14 +316,16 @@ for i=1:N
 %                 inputg2 = timeseries(u_g2,t);
 %             end
 %         else 
-        inputz = timeseries(u_z,t);
+%         inputz = timeseries(u_z,t);
+        inputz = timeseries(u_z_d,t);
         inputgL = timeseries(u_gL,t);
         inputgR = timeseries(u_gR,t);
         tIn = timeseries(t,t);
+%         disturbancex = timeseries(disturbance_x,t);
 %         end
         
 
-        model = sim('Gantry_Model_V12.slx')
+        model = sim('Gantry_Model_V13.slx')
 
         yx = model.outputx.Data();
         yx(1) = [];
@@ -446,7 +457,7 @@ for i=1:N
     prev_firm_grip = firm_grip
     % decide which trajectory to use 
     [row_g, col_g] = find(t>=time_g1(1)+time_g1(2) & t<=time_g1(1)+time_g1(2)+time_g1(3));
-    if (mean(LNormalF(col_g)) >= Fmin * 1.05 && mean(RNormalF(col_g)) >= Fmin * 1.05)
+      if (mean(LNormalF(col_g)) >= Fmin * 1.05 && mean(RNormalF(col_g)) >= Fmin * 1.05)
         if (mean(LNormalF(col_g)) >= Fmin * 1.2 && mean(RNormalF(col_g)) >= Fmin * 1.2)
             refLg1 = G1_axis_V3(time_g1, T, points, [refLg2(col_g(8)) 0.0115-0.0002], Ts);
             refLg1 = refLg1(:,2);
@@ -470,6 +481,7 @@ for i=1:N
         firm_grip = 0;
         objDrop = 0;
     end
+
 
     % Calculate tracking error
     e_x = refx - yx;
@@ -536,23 +548,23 @@ for i=1:N
 
 end
 
-% enorm_y_0_mid = enorm_y;
-% enorm_y_0_0_5_mid = enorm_y;
-enorm_y_0_1_mid = enorm_y;
+% enorm_z_0_mid = enorm_z;
+% enorm_z_0_0_5_mid = enorm_z;
+% enorm_z_0_1_mid = enorm_z;
 
-% enorm_y_0 = enorm_y;
-% enorm_y_0_0_5 = enorm_y;
-% enorm_y_0_1 = enorm_y;
+% enorm_z_0 = enorm_z;
+enorm_z_0_0_5 = enorm_z;
+% enorm_z_0_1 = enorm_z;
 
-enorm_gL_0_1_mid = enorm_gL;
-enorm_gR_0_1_mid = enorm_gR;
-enorm_FgL_0_1_mid = enorm_FgL;
-enorm_FgR_0_1_mid = enorm_FgR;
+% enorm_gL_0_1_mid = enorm_gL;
+% enorm_gR_0_1_mid = enorm_gR;
+% enorm_FgL_0_1_mid = enorm_FgL;
+% enorm_FgR_0_1_mid = enorm_FgR;
 
-% enorm_gL_0_1 = enorm_gL;
-% enorm_gR_0_1 = enorm_gR;
-% enorm_FgL_0_1 = enorm_FgL;
-% enorm_FgR_0_1 = enorm_FgR;
+enorm_gL_0_0_5  = enorm_gL;
+enorm_gR_0 = enorm_gR;
+enorm_FgL_0 = enorm_FgL;
+enorm_FgR_0 = enorm_FgR;
 
 final_enorm_x = norm(e_x)
 enorm_x(1)
