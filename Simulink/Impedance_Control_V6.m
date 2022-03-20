@@ -37,7 +37,7 @@ refRg1 = refRg1(:,2);
 refRg2 = G2_axis_V3(time_g2, T, points, A_g2, Ts);
 refRg2 = refRg2(:,2);
 
-N = 26;
+N = 40;
 
 t = 0:Ts:T;
 t(1) = []; % remove t = 0
@@ -75,7 +75,6 @@ mx = 0.64*0.05*0.05*2700;
 my = 0.05*0.52*0.05*2700;
 mz = 0.025*0.025*0.1*2700;
 mg = 0.05*0.01*0.03*2700;
-%% 
 
 % PD val for each axis to mimic actual TF
 kpx = 27146.6747627399;
@@ -84,13 +83,11 @@ kpy = 131139.225952649;
 kdy = 1480.57986826149;
 kpz = 33734.3806;
 kdz = 163.3421;
-%% 
 
 % Define model tf
  TFx = tf([kdx kpx], [(mx+my+mz+2*mg+mo)*12.345679 kdx*12.345679 kpx*12.345679]);
  TFy = tf([kdy kpy], [(my+mz+2*mg+mo)*487.8 kdy*487.8 kpy*487.8]);
  TFz = tf([kdz kpz], [(mz+2*mg+mo)*1680.672269 kdz*1680.672269 kpz*1680.672269]);
-%% 
 
 % discretise system
  sysdx = ss(c2d(TFx,Ts));
@@ -136,11 +133,19 @@ enorm_y = zeros(N,1); %create N-by-1 matrix of all 0
 u_z = 0*t'; % start from zero. Could start from ref, but results worse
 enorm_z = zeros(N,1); %create N-by-1 matrix of all 0
 
+u_gL = 0*t'; % start from zero. Could start from ref, but results worse
+enorm_gL = zeros(N,1); %create N-by-1 matrix of all 0
+
+u_gR = 0*t'; % start from zero. Could start from ref, but results worse
+enorm_gR = zeros(N,1); %create N-by-1 matrix of all 0
+
 x_pos_plt = [];
 y_pos_plt = [];
 z_pos_plt = [];
 gripL_pos_plt = [];
+gL_input_plt = [];
 gripR_pos_plt = [];
+gR_input_plt = [];
 gripL_FNormal_plt = [];
 gripR_FNormal_plt = [];
 gripR_FNormal_smooth_plt = [];
@@ -154,8 +159,9 @@ prev_firm_grip = 0;
 for i=1:N
     i
     firm_grip
-    force_adaptL
-    force_adaptR
+
+    gL_input_plt = [gL_input_plt u_gL];
+    gR_input_plt = [gR_input_plt u_gR];
     
 
     % Find the position where deadtime is at
@@ -211,12 +217,12 @@ for i=1:N
         inputz = timeseries(u_z,t);
         tIn = timeseries(t,t);
 
-        LGripRef = timeseries(refRg2,t);
+        LGripRef = timeseries(refLg2,t);
         RGripRef = timeseries(refRg2,t);
 %         end
         
 
-        model = sim('Impedance_Gantry_Model_V4.slx')
+        model = sim('Impedance_Gantry_Model_V8.slx')
 
         yx = model.outputx.Data();
         yx(1) = [];
@@ -232,14 +238,24 @@ for i=1:N
         RFFriction = model.RFFriction.Data();
         RFFriction(1) = [];
 
-        LGPosAdj = model.LGPosAdj.Data();
-        LGPosAdj(1) = [];
-        RGPosAdj = model.RGPosAdj.Data();
-        RGPosAdj(1) = [];
-%         ygL = model.outputgL.Data();
-%         ygL(1) = [];
-%         ygR = model.outputgR.Data();
-%         ygR(1) = [];
+        refL = model.LGPosAdj.Data();
+        refL(1) = [];
+        refR = model.RGPosAdj.Data();
+        refR(1) = [];
+        ygL = model.outputgL.Data();
+        ygL(1) = [];
+        ygR = model.outputgR.Data();
+        ygR(1) = [];
+
+        u_gL_d = model.u_gL_d.Data();
+        u_gL_d(1) = [];
+        u_gR_d = model.u_gR_d.Data();
+        u_gR_d(1) = [];
+
+        u_gL = model.u_gL.Data();
+        u_gL(1) = [];
+        u_gR = model.u_gR.Data();
+        u_gR(1) = [];
 % 
 %         LNormalF = model.LNormalForce.Data();
 %         LNormalF(1) = [];
@@ -247,6 +263,11 @@ for i=1:N
 %         RNormalF(1) = [];
 
        
+    end
+
+    if (z_clear) 
+        enorm_FgL(i) = norm(1.2*Fmin - LFNormal);
+        enorm_FgR(i) = norm(1.2*Fmin - RFNormal);
     end
 
     % Decide if z should move
@@ -263,10 +284,17 @@ for i=1:N
     e_y = refy - yy;
     e_z = -refz1 - yz;
 
+    e_gL = refL - ygL;
+    e_gR = refR - ygR;
+
 
     enorm_x(i) = norm(e_x);
     enorm_y(i) = norm(e_y);
     enorm_z(i) = norm(e_z);
+
+    enorm_gL(i) = norm(e_gL);
+    enorm_gR(i) = norm(e_gR);
+    
 
     
     u_x  = u_x + inv(Rx+Qx*(G_x'*G_x))*Qx*G_x'*e_x;
@@ -281,10 +309,10 @@ for i=1:N
     x_pos_plt = [x_pos_plt yx];
     y_pos_plt = [y_pos_plt yy];
     z_pos_plt = [z_pos_plt yz];
-%     gripL_pos_plt = [gripL_pos_plt ygL];
-%     gripR_pos_plt = [gripR_pos_plt ygR];
-%     gripL_FNormal_plt = [gripL_FNormal_plt LNormalF];
-%     gripR_FNormal_plt = [gripR_FNormal_plt RNormalF];
+    gripL_pos_plt = [gripL_pos_plt ygL];
+    gripR_pos_plt = [gripR_pos_plt ygR];
+    gripL_FNormal_plt = [gripL_FNormal_plt LFNormal];
+    gripR_FNormal_plt = [gripR_FNormal_plt RFNormal];
 %     gripR_FNormal_smooth_plt = [gripR_FNormal_smooth_plt RForceMeasured];
 
 %     tracjecotryGL = [tracjecotryGL refLg2];
@@ -301,11 +329,11 @@ enorm_y(1)
 final_enorm_z = norm(e_z)
 enorm_z(1)
 % accuracy_z = enorm_z(25)/enorm_z(1)*100
-% final_enorm_gL = norm(e_gL)
-% enorm_gL(1)
+final_enorm_gL = norm(e_gL)
+enorm_gL(1)
 % %accuracy_g1 = enorm_g1(25)/enorm_g1(1)*100
-% final_enorm_gR = norm(e_gR)
-% enorm_gR(1)
+final_enorm_gR = norm(e_gR)
+enorm_gR(1)
 % %accuracy_g2 = enorm_g2(25)/enorm_g2(1)*100
 
 % final_enorm_gFL = norm(LFdiff)
@@ -313,21 +341,21 @@ enorm_z(1)
 % final_enorm_gFR = norm(RFdiff)
 % enorm_FgR(1)
 
-% subplot(3,3,1)
-% plot(1:N,enorm_gL); xlabel('Trial, k'); ylabel('Error Norm'); title('gripper 1');
-% subplot(3,3,2)
-% plot(1:N,enorm_gR); xlabel('Trial, k'); ylabel('Error Norm'); title('gripper 2');
+subplot(3,3,1)
+plot(1:N,enorm_gL); xlabel('Trial, k'); ylabel('Error Norm'); title('gripper 1');
+subplot(3,3,2)
+plot(1:N,enorm_gR); xlabel('Trial, k'); ylabel('Error Norm'); title('gripper 2');
 subplot(3,3,6)
 plot(1:N,enorm_z); xlabel('Trial, k'); ylabel('Error Norm'); title('z axis');
 subplot(3,3,5)
 plot(1:N,enorm_y); xlabel('Trial, k'); ylabel('Error Norm'); title('y axis');
 subplot(3,3,4)
 plot(1:N,enorm_x); xlabel('Trial, k'); ylabel('Error Norm');title('x axis');
-% subplot(3,3,7)
-% plot(1:N,enorm_FgL); xlabel('Trial, k'); ylabel('Error Norm');title('Left Gripper Force');
-% subplot(3,3,8)
-% plot(1:N,enorm_FgR); xlabel('Trial, k'); ylabel('Error Norm');title('Right Gripper Force');
-% subplot(3,2,3)
+subplot(3,3,7)
+plot(1:N,enorm_FgL); xlabel('Trial, k'); ylabel('Error Norm');title('Left Gripper Force');
+subplot(3,3,8)
+plot(1:N,enorm_FgR); xlabel('Trial, k'); ylabel('Error Norm');title('Right Gripper Force');
+subplot(3,2,3)
 % plot(t,u_x); xlabel('Time (s)'); ylabel('u');
 % subplot(3,2,4)
 % plot(t,e_x); xlabel('Time (s)'); ylabel('e');

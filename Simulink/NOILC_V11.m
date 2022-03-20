@@ -31,7 +31,7 @@ error_start = 30;
 A_disturbance_x = [0.1];
 A_disturbance_y = [2.4];
 A_disturbance_z = [-0.916];
-A_disturbance_g = [-0.32144];
+A_disturbance_g = [-2.009*2];
 % Scenario 2 and 3
 time_disturbance_x = [2.3 0.2 0.2 0.2 2.1];
 time_disturbance_y = [2.3 0.2 0.2 0.2 2.1];
@@ -74,10 +74,10 @@ refRg2 = refRg2(:,2);
 % disturbance_z = disturbance_z(:,2);
 
 % disturbance_g = A_disturbance_g;
-% disturbance_g = impulse_disturbance(time_disturbance_g,T,points,A_disturbance_g,Ts);
+disturbance_g = impulse_disturbance(time_disturbance_g,T,points,A_disturbance_g,Ts);
 % disturbance_g = sine_disturbance(T,points,A_disturbance_g,frequency);
-disturbance_g = 0;
-% disturbance_g = disturbance_g(:,2);
+% disturbance_g = 0;
+disturbance_g = disturbance_g(:,2);
 
 N = 40;
 
