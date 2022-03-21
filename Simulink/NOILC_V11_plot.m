@@ -550,26 +550,26 @@ end
 % 
 % end
 
-for i=29:35
-    subplot(1,2,1)
-    plot(t,gL_input_plt(:,i));
-    xlabel("Time (s)");
-    ylabel("Amplitude");
-    title('Left Gripper Input Signal (20Hz disturbance at 30th iteration)')
-    legend({'29th Iteration','30th Iteration','31th Iteration','32th Iteration','33th Iteration','34th Iteration','35th Iteration'},'Location','northeast','FontSize',7)
-    ylim([19,21]);
-    xlim([2,3]);
-    hold on
-    subplot(1,2,2)
-    plot(t,gR_input_plt(:,i));
-    xlabel("Time (s)");
-    ylabel("Amplitude");
-    title('Right Gripper Input Signal (20Hz disturbance at 30th iteration)')
-    legend({'29th Iteration','30th Iteration','31th Iteration','32th Iteration','33th Iteration','34th Iteration','35th Iteration'},'Location','northeast','FontSize',7)
-    ylim([18.5,20.5]);
-    xlim([2,3]);
-    hold on
-
-end
+% for i=29:35
+%     subplot(1,2,1)
+%     plot(t,gL_input_plt(:,i));
+%     xlabel("Time (s)");
+%     ylabel("Amplitude");
+%     title('Left Gripper Input Signal (20Hz disturbance at 30th iteration)')
+%     legend({'29th Iteration','30th Iteration','31th Iteration','32th Iteration','33th Iteration','34th Iteration','35th Iteration'},'Location','northeast','FontSize',7)
+%     ylim([19,21]);
+%     xlim([2,3]);
+%     hold on
+%     subplot(1,2,2)
+%     plot(t,gR_input_plt(:,i));
+%     xlabel("Time (s)");
+%     ylabel("Amplitude");
+%     title('Right Gripper Input Signal (20Hz disturbance at 30th iteration)')
+%     legend({'29th Iteration','30th Iteration','31th Iteration','32th Iteration','33th Iteration','34th Iteration','35th Iteration'},'Location','northeast','FontSize',7)
+%     ylim([18.5,20.5]);
+%     xlim([2,3]);
+%     hold on
+% 
+% end
 
 
