@@ -57,7 +57,7 @@ if (0)
     save('enorm_gR.mat','enorm_gR');
 end
 
-if (1)
+if (0)
     load('inputx.mat');
     load('inputy.mat');
     load('inputz.mat');
@@ -463,24 +463,46 @@ end
 %     plot(t,gripL_FNormal_plt(:,i));
 %     xlabel("Time (s)");
 %     ylabel("Force (N)");
-%     title('Left Gripper Force feedback (10% disturbance at 30th iteration)')
+%     title('Left Gripper Force feedback (5% disturbance at 30th iteration)')
 %     legend({'29th Iteration','30th Iteration','31th Iteration','32th Iteration','33th Iteration','34th Iteration','35th Iteration'},'Location','northeast','FontSize',7)
-% %     ylim([5,8]);
+%     ylim([5,8]);
 %     xlim([1,4]);
 %     hold on
 %     subplot(1,2,2)
 %     plot(t,gripR_FNormal_plt(:,i));
 %     xlabel("Time (s)");
 %     ylabel("Force (N)");
-%     title('Right Gripper Force feedback (10% disturbance at 30th iteration)')
+%     title('Right Gripper Force feedback (5% disturbance at 30th iteration)')
 %     legend({'29th Iteration','30th Iteration','31th Iteration','32th Iteration','33th Iteration','34th Iteration','35th Iteration'},'Location','northeast','FontSize',7)
 %     xlim([1,4]);
 %     hold on
-% %     ylim([5,8]);
+%     ylim([5,8]);
 % 
 % end
 
 % xlim([2,3])
+
+for i=29:35
+    subplot(1,2,1)
+    plot(t,x_pos_plt(:,i));
+    xlabel("Time (s)");
+    ylabel("Displacement (m)");
+    title('X axis Position Feedback (5% disturbance at 30th iteration)')
+    legend({'29th Iteration','30th Iteration','31th Iteration','32th Iteration','33th Iteration','34th Iteration','35th Iteration'},'Location','northeast','FontSize',7)
+    xlim([2.3,2.9]);
+    ylim([0.3,0.5]);
+    hold on
+    subplot(1,2,2)
+    plot(t,x_input_plt(:,i));
+    xlabel("Time (s)");
+    ylabel("Displacement (m)");
+    title('X axis Input Signal (5% disturbance at 30th iteration)')
+    legend({'29th Iteration','30th Iteration','31th Iteration','32th Iteration','33th Iteration','34th Iteration','35th Iteration'},'Location','northeast','FontSize',7)
+    xlim([2.3,2.9]);
+    hold on
+    ylim([4,6.5]);
+
+end
 
 
 

@@ -98,7 +98,7 @@ Ry = eye(size(G_y))*0.001;
 Qy = eye(size(G_y))*400;
 
 Rz = eye(size(G_z))*0.0001; 
-Qz = eye(size(G_z))*1500;
+Qz = eye(size(G_z))*1000;
 
 Rg1 = eye(size(G_g1))*0.0001; 
 Qg1 = eye(size(G_g1))*1500;
@@ -135,7 +135,7 @@ enorm_g2 = zeros(N,1);
 
 for i=1:N
     i
-    if(0) %run uing lsim
+    if(1) %run uing lsim
         yx = lsim(TFx,u_x,t);
         yy = lsim(TFy,u_y,t);
         yz = lsim(TFz,u_z,t);
@@ -226,6 +226,7 @@ subplot(3,3,5)
 plot(1:N,enorm_y); xlabel('Time (s)'); ylabel('y axis');
 subplot(3,3,4)
 plot(1:N,enorm_x); xlabel('Trial, k'); ylabel('x axis');title('x axis');
+enorm_x2 = enorm_x;
 % subplot(3,2,3)
 % plot(t,u_x); xlabel('Time (s)'); ylabel('u');
 % subplot(3,2,4)

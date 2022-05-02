@@ -115,8 +115,8 @@ scatter(n6,y6);
 scatter(n7,y7);
 scatter(n0,y0);
 scatter(n000,y000);
-scatter(n,y);
+% scatter(n,y);
 
-scatter(grip_profile_V2(:,1),grip_profile_V2(:,2))
+% scatter(grip_profile_V2(:,1),grip_profile_V2(:,2))
 
 

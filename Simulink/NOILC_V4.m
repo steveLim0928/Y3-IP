@@ -21,7 +21,7 @@ refg2 = grip_profile_V2(:,2);
 T = 4;
 Ts = 0.01;
 
-N = 10;
+N = 15;
 
 t = 0:Ts:T;
 t(1) = []; % remove t = 0
@@ -188,9 +188,16 @@ y_pos_plt = [];
 z_pos_plt = [];
 grip1_pos_plt = [];
 grip2_pos_plt = [];
+u_x_plt = [];
+u_y_plt = [];
+u_z_plt = [];
 
 for i=1:N
     i
+
+    u_x_plt = [u_x_plt u_x];
+    u_y_plt = [u_y_plt u_y];
+    u_z_plt = [u_z_plt u_z];
 
     % Find the position where deadtime is at
     [row_x1, col_x1] = find(t>=d1_x & t<=d1_x+D1_x);
@@ -212,10 +219,18 @@ for i=1:N
             yz = lsim(TFz,u_z,t);
             if (grip1_clear)
                 yg1 = lsim(TFg,u_g1,t);
+            else 
+                yg1 = 0;
             end
             if (grip2_clear)
                 yg2 = lsim(TFg,u_g2,t);
+            else 
+                yg2 = 0;
             end
+        else 
+            yz = 0;
+            yg1 = 0;
+            yg2 = 0;
         end
     elseif(0)
         yx = G_x*u_x;

@@ -64,15 +64,15 @@ y3 = (A*cos(1/d2*pi*(n3-l2)) + A)/2;
 y3 = reshape(y3, [N3,1]);
 
 % Phase 4, reshape to fit 1xn
-y4 = (-A*cos(1/d3*pi*(n4-l3)) + A)/2;
+y4 = (-0.028*cos(1/d3*pi*(n4-l3)) + 0.028)/2;
 y4 = reshape(y4, [N4,1]);
 
 % Phase 5, only get 1st column
-y5 = A*ones(N5);
+y5 = 0.028*ones(N5);
 y5 = y5(:,1);
 
 % Phase 6, reshape to fit 1xn
-y6 = (A*cos(1/d4*pi*(n6-l5)) + A)/2;
+y6 = (0.028*cos(1/d4*pi*(n6-l5)) + 0.028)/2;
 y6 = reshape(y6, [N6,1]);
 
 y0 = zeros(N0);

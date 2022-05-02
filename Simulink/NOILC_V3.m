@@ -21,7 +21,7 @@ refg2 = grip_profile_V2(:,2);
 T = 4;
 Ts = 0.01;
 
-N = 10;
+N = 4;
 
 t = 0:Ts:T;
 t(1) = []; % remove t = 0
@@ -153,8 +153,10 @@ for i=1:N
         inputx = timeseries(u_x,t);
         inputy = timeseries(u_y,t);
         inputz = timeseries(u_z,t);
-        inputg1 = timeseries(u_g1,t);
-        inputg2 = timeseries(u_g2,t);
+        inputg1 = timeseries(0*t);
+        inputg2 = timeseries(0*t);
+%         inputg1 = timeseries(u_g1,t);
+%         inputg2 = timeseries(u_g2,t);
 
         model = sim('Gantry_Model_V9.slx')
 
@@ -164,31 +166,31 @@ for i=1:N
         yy(1) = [];
         yz = model.outputz.Data();
         yz(1) = [];
-        yg1 = model.outputg1.Data();
-        yg1(1) = [];
-        yg2 = model.outputg2.Data();
-        yg2(1) = [];
+%         yg1 = model.outputg1.Data();
+%         yg1(1) = [];
+%         yg2 = model.outputg2.Data();
+%         yg2(1) = [];
        
     end
 
     e_x = refx - yx;
     e_y = refy - yy;
     e_z = -refz - yz;
-    e_g1 = refg1 - yg1;
-    e_g2 = refg2 - yg2;
+%     e_g1 = refg1 - yg1;
+%     e_g2 = refg2 - yg2;
 
     enorm_x(i) = norm(e_x);
     enorm_y(i) = norm(e_y);
     enorm_z(i) = norm(e_z);
-    enorm_g1(i) = norm(e_g1);
-    enorm_g2(i) = norm(e_g2);
+%     enorm_g1(i) = norm(e_g1);
+%     enorm_g2(i) = norm(e_g2);
     
     u_x  = u_x + inv(Rx+Qx*(G_x'*G_x))*Qx*G_x'*e_x;
     u_y  = u_y + inv(Ry+Qy*(G_y'*G_y))*Qy*G_y'*e_y;
     %u_y  = u_y + inv(Ry+G_y'*Qy*G_y)*G_y'* Qy*e_y;
     u_z  = u_z + inv(Rz+Qz*(G_z'*G_z))*Qz*G_z'*e_z;
-    u_g1  = u_g1 + inv(Rg1+Qg1*(G_g1'*G_g1))*Qg1*G_g1'*e_g1;
-    u_g2  = u_g2 + inv(Rg2+Qg2*(G_g2'*G_g2))*Qg2*G_g2'*e_g2;
+%     u_g1  = u_g1 + inv(Rg1+Qg1*(G_g1'*G_g1))*Qg1*G_g1'*e_g1;
+%     u_g2  = u_g2 + inv(Rg2+Qg2*(G_g2'*G_g2))*Qg2*G_g2'*e_g2;
 
    % u = u + noise;
     
